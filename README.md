@@ -8,17 +8,17 @@ KiOS is a minimalist 64-bit operating system written in C and Assembly, designed
 
 ## Features
 
-✅ **64-bit Long Mode** - Full x86_64 support
-✅ **Custom Bootloader** - Two-stage bootloader (Stage1 + Stage2)
-✅ **VGA Text Mode** - 80x25 color text output
-✅ **Interactive Shell** - Command-line interface with 12 built-in commands
-✅ **Interrupt Handling** - IDT with full exception and IRQ support
-✅ **Exception Handlers** - Detailed error reporting for CPU exceptions
-✅ **PIC Configuration** - IRQ remapping to avoid conflicts
-✅ **GDT & TSS** - Proper segment descriptor tables
-✅ **Keyboard Interrupts** - IRQ-based keyboard input (no polling!)
-✅ **Scrolling Support** - Automatic screen scrolling
-✅ **Modular Design** - Clean separation of components
+- ✅ **64-bit Long Mode** - Full x86_64 support
+- ✅ **Custom Bootloader** - Two-stage bootloader (Stage1 + Stage2)
+- ✅ **VGA Text Mode** - 80x25 color text output
+- ✅ **Interactive Shell** - Command-line interface with 12 built-in commands
+- ✅ **Interrupt Handling** - IDT with full exception and IRQ support
+- ✅ **Exception Handlers** - Detailed error reporting for CPU exceptions
+- ✅ **PIC Configuration** - IRQ remapping to avoid conflicts
+- ✅ **GDT & TSS** - Proper segment descriptor tables
+- ✅ **Keyboard Interrupts** - IRQ-based keyboard input (no polling!)
+- ✅ **Scrolling Support** - Automatic screen scrolling
+- ✅ **Modular Design** - Clean separation of components
 
 ## System Requirements
 
