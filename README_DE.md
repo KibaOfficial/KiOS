@@ -179,6 +179,9 @@ Beiträge sind willkommen! Bitte zögere nicht, Issues oder Pull Requests einzur
 
 Dieses Projekt ist unter der MIT-Lizenz lizenziert - siehe LICENSE-Datei für Details.
 
+## KI Disclaimer
+Teile dieses Projekts wurden mit Hilfe generativer KI-Modelle erstellt. Obwohl ich vieles überprüfe und docs wie OS Dev Wiki als referenz nutze, könnten einige Abschnitte Ungenauigkeiten oder Fehler enthalten. Ich bin auch nur ein Mensch ich kann nicht alles wissen aber mein bestes geben :)
+
 ## Danksagungen
 
 - OSDev Wiki - Unschätzbare Ressource für OS-Entwicklung
