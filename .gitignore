@@ -1,0 +1,34 @@
+# Ignore build artifacts and temporary files
+build/
+*.o
+*.bin
+*.elf
+*.img
+*.iso
+*.map
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.old
+*.dmp
+*.core
+*.out
+
+# Editor and tool folders
+.vscode/
+.claude/
+
+# Project planning and logs
+plan.md
+qemu.log
+ROADMAP_DE.md
+ROADMAP.md
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore compiled command objects (if any)
+src/kernel/commands/*.o
