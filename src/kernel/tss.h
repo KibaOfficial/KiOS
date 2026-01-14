@@ -6,7 +6,7 @@
 #ifndef KIOS_TSS_H
 #define KIOS_TSS_H
 
-#include <stdint.h>
+#include "types.h"
 
 // TSS-Struktur für x86_64 (104 Bytes)
 typedef struct {

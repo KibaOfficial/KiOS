@@ -20,6 +20,7 @@
 #include "tss.h"
 #include "gdt.h"
 #include "pic.h"
+#include "mm/pmm.h"
 
 
 
@@ -56,6 +57,34 @@ void kernel_main(void)
 
     /* IDT initialisieren (setzt isr8 mit ist=1) */
     idt_init();
+
+    /* PMM Initialisieren */
+    pmm_init();
+
+    /* Test: eine physische Seite allozieren */
+    void* page1 = pmm_alloc_page();
+    vga_print("Allocated page1 at: ");
+    vga_print_hex((uint64_t)page1);
+    vga_println("");
+
+    /* Test: zweite Seite allozieren */
+    void* page2 = pmm_alloc_page();
+    vga_print("Allocated page2 at: ");
+    vga_print_hex((uint64_t)page2);
+    vga_println("");
+
+    /* Test: erste Seite freigeben */
+    pmm_free_page(page1);
+    vga_print("Freed page1 at: ");
+    vga_print_hex((uint64_t)page1);
+
+    /* PMM Stats ausgeben */
+    vga_print("Total pages: ");
+    vga_print_dec(pmm_total_pages());
+    vga_println("");
+    vga_print("Used pages: ");
+    vga_print_dec(pmm_used_pages());
+    vga_println("");
 
     /* Keyboard Interrupt Handler initialisieren (aktiviert IRQ1) */
     keyboard_irq_init();
