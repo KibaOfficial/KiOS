@@ -219,7 +219,7 @@ $(BUILD_DIR)/mm:
 run: $(OS_IMAGE)
 	@echo ">>> Starting QEMU..."
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
-	        -m 128M \
+	        -m 256M \
 	        -monitor stdio
 
 # QEMU mit Debug-Ausgabe (CPU-Register, Interrupts, etc.)
@@ -228,7 +228,7 @@ run-debug: $(OS_IMAGE)
 	@echo ">>> Log wird nach qemu.log geschrieben"
 	@echo ">>> Verfügbare -d Flags: int,cpu_reset,guest_errors,exec,cpu"
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
-	        -m 128M \
+	        -m 256M \
 	        -monitor stdio \
 	        -d int,cpu_reset,guest_errors,exec \
 	        -D qemu.log \
@@ -239,7 +239,7 @@ run-debug: $(OS_IMAGE)
 run-serial: $(OS_IMAGE)
 	@echo ">>> Starting QEMU with serial output..."
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
-	        -m 128M \
+	        -m 256M \
 	        -serial file:serial.log \
 	        -monitor stdio
 
@@ -248,7 +248,7 @@ debug: $(OS_IMAGE)
 	@echo ">>> Starting QEMU with GDB server..."
 	@echo ">>> Connect with: gdb -ex 'target remote localhost:1234'"
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
-	        -m 128M \
+	        -m 256M \
 	        -s -S \
 	        -monitor stdio
 

@@ -27,8 +27,8 @@ _kernel_start:
     ; ─────────────────────────────────────────────────────────────────────────
     cli
 
-    ; Stack neu setzen (sicher)
-    mov rsp, 0x200000
+    ; Stack auf 0x500000 (5MB) setzen - mitten im sicher gemappten Bereich
+    mov rsp, 0x500000
 
     ; Bildschirm komplett löschen (80x25 * 2 = 4000 Bytes)
     mov rdi, 0xB8000            ; VGA Buffer Adresse

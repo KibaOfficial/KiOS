@@ -6,7 +6,7 @@
 #pragma once
 #include "types.h"
 
-#define MEMORY_MAP_BASE 0x8000
+#define MEMORY_MAP_BASE 0x10000
 
 typedef struct {
   uint64_t base;
