@@ -1,7 +1,7 @@
 #include "vga.h"
 #include "types.h"
 
-#define MEMORY_MAP_BASE 0x8000
+#define MEMORY_MAP_BASE 0x10000
 #define MEMORY_MAP_ENTRY_SIZE 24
 
 typedef struct {
@@ -13,7 +13,7 @@ typedef struct {
 
 void cmd_mmap(const char* args) {
     (void)args;
-    #define MEMORY_MAP_BASE 0x8000
+    #define MEMORY_MAP_BASE 0x10000
     typedef struct {
         uint64_t base;
         uint64_t length;
