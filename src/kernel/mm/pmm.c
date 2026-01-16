@@ -72,6 +72,19 @@ void pmm_init(void)
 		}
 	}
 
+	/* Reserviere die ersten 1MB (BIOS, Bootloader, etc.) */
+	uint64_t reserved_1mb_pages = 0x100000 / PAGE_SIZE; // 1MB = 256 pages
+	for (uint64_t p = 0; p < reserved_1mb_pages; p++)
+	{
+		uint64_t byte = p / 8;
+		uint8_t bit = 1 << (p % 8);
+		if (!(bitmap[byte] & bit))
+		{
+			bitmap[byte] |= bit;
+			used_pages++;
+		}
+	}
+
 	/* Kernel und Bitmap reservieren */
 	uint64_t kernel_start = (uint64_t)&__kernel_start;
 	uint64_t kernel_end = (uint64_t)bitmap + bitmap_size;

@@ -19,5 +19,6 @@ void cmd_shutdown(const char* args);
 
 void cmd_fault(const char* args);
 void cmd_mmap(const char* args);
+void cmd_vmtest(const char* args);
 
 #endif /* KIOS_COMMANDS_H */

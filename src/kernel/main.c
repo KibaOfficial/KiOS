@@ -21,6 +21,7 @@
 #include "gdt.h"
 #include "pic.h"
 #include "mm/pmm.h"
+#include "mm/vmm.h"
 
 
 
@@ -60,6 +61,9 @@ void kernel_main(void)
 
     /* PMM Initialisieren */
     pmm_init();
+
+    /* VMM Initialisieren */
+    vmm_init();
 
     /* Test: eine physische Seite allozieren */
     void* page1 = pmm_alloc_page();

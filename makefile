@@ -57,8 +57,8 @@ KERNEL_ENTRY_SRC = $(KERNEL_DIR)/entry.asm
 KERNEL_ENTRY_OBJ = $(BUILD_DIR)/entry.o
 
 # Ergänze tss.c und gdt.c
-KERNEL_C_SRCS = $(KERNEL_DIR)/main.c $(KERNEL_DIR)/shell.c $(KERNEL_DIR)/commands.c $(KERNEL_DIR)/vga.c $(KERNEL_DIR)/idt.c $(KERNEL_DIR)/isr.c $(KERNEL_DIR)/pic.c $(KERNEL_DIR)/keyboard_irq.c $(KERNEL_DIR)/tss.c $(KERNEL_DIR)/gdt.c $(KERNEL_DIR)/mm/pmm.c
-KERNEL_C_OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/commands.o $(BUILD_DIR)/vga.o $(BUILD_DIR)/idt.o $(BUILD_DIR)/isr.o $(BUILD_DIR)/pic.o $(BUILD_DIR)/keyboard_irq.o $(BUILD_DIR)/tss.o $(BUILD_DIR)/gdt.o $(BUILD_DIR)/mm/pmm.o
+KERNEL_C_SRCS = $(KERNEL_DIR)/main.c $(KERNEL_DIR)/shell.c $(KERNEL_DIR)/commands.c $(KERNEL_DIR)/vga.c $(KERNEL_DIR)/idt.c $(KERNEL_DIR)/isr.c $(KERNEL_DIR)/pic.c $(KERNEL_DIR)/keyboard_irq.c $(KERNEL_DIR)/tss.c $(KERNEL_DIR)/gdt.c $(KERNEL_DIR)/mm/pmm.c $(KERNEL_DIR)/mm/vmm.c
+KERNEL_C_OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/commands.o $(BUILD_DIR)/vga.o $(BUILD_DIR)/idt.o $(BUILD_DIR)/isr.o $(BUILD_DIR)/pic.o $(BUILD_DIR)/keyboard_irq.o $(BUILD_DIR)/tss.o $(BUILD_DIR)/gdt.o $(BUILD_DIR)/mm/pmm.o $(BUILD_DIR)/mm/vmm.o
 
 # IDT Assembly
 IDT_ASM_SRC = $(KERNEL_DIR)/idt_asm.asm
@@ -185,6 +185,10 @@ $(BUILD_DIR)/mm/pmm.o: src/kernel/mm/pmm.c src/kernel/mm/pmm.h | $(BUILD_DIR)/mm
 	@echo ">>> Compiling pmm.c..."
 	$(CC) $(CFLAGS) -c src/kernel/mm/pmm.c -o $(BUILD_DIR)/mm/pmm.o
 
+$(BUILD_DIR)/mm/vmm.o: src/kernel/mm/vmm.c src/kernel/mm/vmm.h | $(BUILD_DIR)/mm
+	@echo ">>> Compiling vmm.c..."
+	$(CC) $(CFLAGS) -c src/kernel/mm/vmm.c -o $(BUILD_DIR)/mm/vmm.o
+
 # Command modules
 $(BUILD_DIR)/commands/%.o: $(KERNEL_DIR)/commands/%.c | $(BUILD_DIR)/commands
 	@echo ">>> Compiling $<..."
@@ -220,7 +224,8 @@ run: $(OS_IMAGE)
 	@echo ">>> Starting QEMU..."
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
 	        -m 256M \
-	        -monitor stdio
+	        -monitor stdio \
+	        -display sdl,gl=on
 
 # QEMU mit Debug-Ausgabe (CPU-Register, Interrupts, etc.)
 run-debug: $(OS_IMAGE)
@@ -230,6 +235,7 @@ run-debug: $(OS_IMAGE)
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
 	        -m 256M \
 	        -monitor stdio \
+	        -display sdl,gl=on \
 	        -d int,cpu_reset,guest_errors,exec \
 	        -D qemu.log \
 	        -no-reboot \
