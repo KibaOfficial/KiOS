@@ -110,7 +110,7 @@ void kernel_main(void)
     vga_println("");
     vga_println("");
 
-    vga_print_colored("  Welcome to KiOS v0.2.0", VGA_YELLOW, VGA_BLACK);
+    vga_print_colored("  Welcome to KiOS v0.3.0-dev", VGA_YELLOW, VGA_BLACK);
     vga_println(" - A simple 64-bit operating system");
     vga_println("");
 

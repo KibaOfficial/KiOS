@@ -1,6 +1,6 @@
 # KiOS - A Simple 64-bit Operating System
 
-![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.3.0--dev-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Architecture](https://img.shields.io/badge/arch-x86__64-orange.svg)
 
@@ -8,17 +8,26 @@ KiOS is a minimalist 64-bit operating system written in C and Assembly, designed
 
 ## Features
 
+### Core System
 - ✅ **64-bit Long Mode** - Full x86_64 support
-- ✅ **Custom Bootloader** - Two-stage bootloader (Stage1 + Stage2)
+- ✅ **Custom Bootloader** - Two-stage bootloader with chunkwise kernel loading
 - ✅ **VGA Text Mode** - 80x25 color text output
-- ✅ **Interactive Shell** - Command-line interface with 12 built-in commands
+- ✅ **Interactive Shell** - Command-line interface with 14 built-in commands
 - ✅ **Interrupt Handling** - IDT with full exception and IRQ support
 - ✅ **Exception Handlers** - Detailed error reporting for CPU exceptions
 - ✅ **PIC Configuration** - IRQ remapping to avoid conflicts
-- ✅ **GDT & TSS** - Proper segment descriptor tables
+- ✅ **GDT & TSS** - Proper segment descriptor tables with Double Fault IST
 - ✅ **Keyboard Interrupts** - IRQ-based keyboard input (no polling!)
 - ✅ **Scrolling Support** - Automatic screen scrolling
 - ✅ **Modular Design** - Clean separation of components
+
+### Memory Management (v0.3.0)
+- ✅ **Physical Memory Manager (PMM)** - Bitmap-based allocator managing 128MB RAM
+- ✅ **Virtual Memory Manager (VMM)** - 4-level page table manipulation
+- ✅ **Page Allocation** - pmm_alloc_page() and pmm_free_page()
+- ✅ **Virtual Mapping** - vmm_map_page() and vmm_unmap_page()
+- ✅ **Address Translation** - vmm_virt_to_phys()
+- 🔄 **Heap Allocator** - kmalloc/kfree (In Development)
 
 ## System Requirements
 
@@ -31,7 +40,7 @@ KiOS is a minimalist 64-bit operating system written in C and Assembly, designed
 
 **Runtime Requirements:**
 - QEMU (for emulation) or real x86_64 hardware
-- At least 128MB RAM
+- At least 256MB RAM (recommended for v0.3.0 memory management features)
 
 ## Quick Start
 
@@ -73,7 +82,8 @@ KiOS includes an interactive shell with the following commands:
 | `echo`     | Echo text to the screen                     |
 | `color`    | Display VGA color palette                   |
 | `mem`      | Show memory layout                          |
-| `mmap`     | Show physical memory map                    |
+| `mmap`     | Show physical memory map (E820)             |
+| `vmtest`   | Test Virtual Memory Manager (VMM)           |
 | `time`     | Display current system time (uptime)        |
 | `fault`    | Trigger a CPU exception for testing         |
 | `netconf`  | Show network configuration (placeholder)    |
@@ -116,6 +126,12 @@ KiOS-New/
 │       ├── io.h                # I/O port operations
 │       ├── types.h             # Type definitions
 │       ├── linker.ld           # Kernel linker script
+│       ├── mm/                 # Memory Management
+│       │   ├── pmm.c           # Physical Memory Manager
+│       │   ├── pmm.h           # PMM Header
+│       │   ├── vmm.c           # Virtual Memory Manager
+│       │   ├── vmm.h           # VMM Header
+│       │   └── memory_map.h    # Memory Map utilities
 │       └── commands/           # Individual command modules
 │           ├── help.c
 │           ├── clear.c
@@ -124,12 +140,13 @@ KiOS-New/
 │           ├── color.c
 │           ├── mem.c
 │           ├── mmap.c
+│           ├── vmtest.c        # VMM Test command
 │           ├── time.c
 │           ├── reboot.c
 │           ├── shutdown.c
 │           ├── netconf.c
 │           ├── halt.c
-│           ├── fault.c
+│           └── fault.c
 ├── build/                      # Build output directory
 ├── makefile                    # Main build system
 └── README.md                   # This file
@@ -142,17 +159,23 @@ KiOS-New/
 1. **BIOS** loads Stage1 bootloader at `0x7C00` (sector 0)
 2. **Stage1** loads Stage2 bootloader at `0x7E00` (sector 1-33)
 3. **Stage2** performs:
+   - E820 memory map detection (with fallback to hardcoded map)
    - A20 gate activation
    - Temporary GDT setup
-   - Page table configuration (identity mapping with 2MB pages)
+   - Page table configuration (1GB identity mapping with 2MB pages)
    - Transition to Long Mode (64-bit)
+   - Chunkwise kernel loading (up to 73 sectors = ~36KB)
    - Load kernel from sector 34 to `0x100000` (1MB)
 4. **Kernel** performs:
    - VGA initialization
-   - GDT and TSS setup
-   - PIC remapping (IRQs 0-15 → Interrupts 32-47)
+   - PIC configuration (mask all IRQs initially)
+   - TSS initialization (Double Fault IST stack)
+   - GDT setup with TSS segment
    - IDT initialization with 256 entries
-   - Interrupt activation
+   - PMM initialization (Physical Memory Manager)
+   - VMM initialization (Virtual Memory Manager)
+   - Keyboard interrupt handler activation (IRQ1)
+   - Interrupt activation (STI)
    - Shell startup
 
 ### Memory Layout
@@ -162,11 +185,17 @@ KiOS-New/
 0x00000400 - 0x000004FF    BIOS Data Area
 0x00007C00 - 0x00007DFF    Bootloader Stage 1
 0x00007E00 - 0x0000BDFF    Bootloader Stage 2
-0x00010000 - 0x00017FFF    Kernel Load Buffer
+0x00009000                 PML4 (Page Map Level 4)
+0x0000A000                 PDPT (Page Directory Pointer Table)
+0x0000B000                 PD (Page Directory)
+0x00010000 - 0x00010002    Memory Map Entry Count
+0x00010002 - ...           Memory Map Entries (E820)
 0x000A0000 - 0x000BFFFF    VGA Memory
 0x000B8000 - 0x000B8F9F    VGA Text Buffer (80x25)
 0x00100000 - ...           Kernel (1MB+)
+0x00110000+                PMM Bitmap (after kernel)
 0x00200000                 Stack Top
+0xFFFF800000000000+        Kernel Heap (Virtual, for future use)
 ```
 
 ### Compiler Flags
@@ -204,13 +233,39 @@ When a CPU exception occurs, KiOS displays:
 - Automatic EOI (End of Interrupt) to PIC
 - Keyboard uses IRQ1 for interrupt-driven input
 
+### Memory Management (v0.3.0)
+
+**Physical Memory Manager (PMM)**
+- Bitmap-based page allocator
+- 4KB page granularity
+- Manages up to 128MB RAM (32,768 pages)
+- Reserves first 1MB for BIOS/bootloader
+- API: `pmm_alloc_page()`, `pmm_free_page()`, `pmm_total_pages()`, `pmm_used_pages()`
+
+**Virtual Memory Manager (VMM)**
+- 4-level page table manipulation (PML4 → PDPT → PD → PT)
+- Automatic page table allocation via PMM
+- Memory barriers (`mfence`) for synchronization
+- TLB invalidation after page table modifications
+- API: `vmm_map_page()`, `vmm_unmap_page()`, `vmm_virt_to_phys()`
+
+**vmtest Command**
+Tests VMM functionality by:
+1. Allocating a physical page via PMM
+2. Mapping it to a virtual address (`0xFFFF800000001000`)
+3. Verifying virtual-to-physical translation
+4. Writing and reading test data (`0xDEADBEEFCAFEBABE`)
+5. Unmapping the page
+6. Freeing the physical page
+
 ## Known Limitations
 
 - No timer interrupts (IRQ0 not used yet)
-- No memory management (no heap allocator)
+- No heap allocator (kmalloc/kfree in development)
 - No multitasking/process management
 - No filesystem support
 - No network stack
+- VGA Text Mode limited to 80x25 resolution
 
 ## Contributing
 
@@ -219,6 +274,10 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## AI Disclaimer
+
+Parts of this project were created with the assistance of generative AI models. While I review much of the code and reference documentation such as the OSDev Wiki, some sections may contain inaccuracies or errors. I'm only human and can't know everything, but I do my best! :)
 
 ## Acknowledgments
 
