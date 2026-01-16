@@ -57,8 +57,8 @@ KERNEL_ENTRY_SRC = $(KERNEL_DIR)/entry.asm
 KERNEL_ENTRY_OBJ = $(BUILD_DIR)/entry.o
 
 # Ergänze tss.c und gdt.c
-KERNEL_C_SRCS = $(KERNEL_DIR)/main.c $(KERNEL_DIR)/shell.c $(KERNEL_DIR)/commands.c $(KERNEL_DIR)/vga.c $(KERNEL_DIR)/idt.c $(KERNEL_DIR)/isr.c $(KERNEL_DIR)/pic.c $(KERNEL_DIR)/keyboard_irq.c $(KERNEL_DIR)/tss.c $(KERNEL_DIR)/gdt.c
-KERNEL_C_OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/commands.o $(BUILD_DIR)/vga.o $(BUILD_DIR)/idt.o $(BUILD_DIR)/isr.o $(BUILD_DIR)/pic.o $(BUILD_DIR)/keyboard_irq.o $(BUILD_DIR)/tss.o $(BUILD_DIR)/gdt.o
+KERNEL_C_SRCS = $(KERNEL_DIR)/main.c $(KERNEL_DIR)/shell.c $(KERNEL_DIR)/commands.c $(KERNEL_DIR)/vga.c $(KERNEL_DIR)/idt.c $(KERNEL_DIR)/isr.c $(KERNEL_DIR)/pic.c $(KERNEL_DIR)/keyboard_irq.c $(KERNEL_DIR)/tss.c $(KERNEL_DIR)/gdt.c $(KERNEL_DIR)/mm/pmm.c $(KERNEL_DIR)/mm/vmm.c $(KERNEL_DIR)/mm/heap.c
+KERNEL_C_OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/commands.o $(BUILD_DIR)/vga.o $(BUILD_DIR)/idt.o $(BUILD_DIR)/isr.o $(BUILD_DIR)/pic.o $(BUILD_DIR)/keyboard_irq.o $(BUILD_DIR)/tss.o $(BUILD_DIR)/gdt.o $(BUILD_DIR)/mm/pmm.o $(BUILD_DIR)/mm/vmm.o $(BUILD_DIR)/mm/heap.o
 
 # IDT Assembly
 IDT_ASM_SRC = $(KERNEL_DIR)/idt_asm.asm
@@ -115,10 +115,11 @@ $(STAGE1_BIN): $(STAGE1_SRC) | $(BUILD_DIR)
 	@echo ">>> Assembling Stage 1..."
 	$(ASM) -f bin $< -o $@
 
-# Stage 2 Bootloader
-$(STAGE2_BIN): $(STAGE2_SRC) | $(BUILD_DIR)
-	@echo ">>> Assembling Stage 2..."
-	$(ASM) -f bin $< -o $@
+# Stage 2 Bootloader (depends on kernel.bin to calculate sectors)
+$(STAGE2_BIN): $(STAGE2_SRC) $(KERNEL_BIN) | $(BUILD_DIR)
+	$(eval KERNEL_SECTORS := $(shell stat -c%s $(KERNEL_BIN) 2>/dev/null | awk '{print int(($$1 + 511) / 512)}'))
+	@echo ">>> Assembling Stage 2 (Kernel: $(KERNEL_SECTORS) sectors)..."
+	$(ASM) -f bin $< -D_KERNEL_SECTORS=$(KERNEL_SECTORS) -o $@
 
 # Kernel Entry (Assembly)
 $(KERNEL_ENTRY_OBJ): $(KERNEL_ENTRY_SRC) | $(BUILD_DIR)
@@ -180,6 +181,19 @@ $(BUILD_DIR)/gdt.o: src/kernel/gdt.c src/kernel/gdt.h | $(BUILD_DIR)
 	@echo ">>> Compiling gdt.c..."
 	$(CC) $(CFLAGS) -c src/kernel/gdt.c -o $(BUILD_DIR)/gdt.o
 
+# pmm.o
+$(BUILD_DIR)/mm/pmm.o: src/kernel/mm/pmm.c src/kernel/mm/pmm.h | $(BUILD_DIR)/mm
+	@echo ">>> Compiling pmm.c..."
+	$(CC) $(CFLAGS) -c src/kernel/mm/pmm.c -o $(BUILD_DIR)/mm/pmm.o
+
+$(BUILD_DIR)/mm/vmm.o: src/kernel/mm/vmm.c src/kernel/mm/vmm.h | $(BUILD_DIR)/mm
+	@echo ">>> Compiling vmm.c..."
+	$(CC) $(CFLAGS) -c src/kernel/mm/vmm.c -o $(BUILD_DIR)/mm/vmm.o
+
+$(BUILD_DIR)/mm/heap.o: src/kernel/mm/heap.c src/kernel/mm/heap.h | $(BUILD_DIR)/mm
+	@echo ">>> Compiling heap.c..."
+	$(CC) $(CFLAGS) -c src/kernel/mm/heap.c -o $(BUILD_DIR)/mm/heap.o
+
 # Command modules
 $(BUILD_DIR)/commands/%.o: $(KERNEL_DIR)/commands/%.c | $(BUILD_DIR)/commands
 	@echo ">>> Compiling $<..."
@@ -207,12 +221,16 @@ $(BUILD_DIR):
 $(BUILD_DIR)/commands:
 	mkdir -p $(BUILD_DIR)/commands
 
+$(BUILD_DIR)/mm:
+	mkdir -p $(BUILD_DIR)/mm
+
 # QEMU starten
 run: $(OS_IMAGE)
 	@echo ">>> Starting QEMU..."
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
-	        -m 128M \
-	        -monitor stdio
+	        -m 256M \
+	        -monitor stdio \
+	        -display sdl,gl=on
 
 # QEMU mit Debug-Ausgabe (CPU-Register, Interrupts, etc.)
 run-debug: $(OS_IMAGE)
@@ -220,8 +238,9 @@ run-debug: $(OS_IMAGE)
 	@echo ">>> Log wird nach qemu.log geschrieben"
 	@echo ">>> Verfügbare -d Flags: int,cpu_reset,guest_errors,exec,cpu"
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
-	        -m 128M \
+	        -m 256M \
 	        -monitor stdio \
+	        -display sdl,gl=on \
 	        -d int,cpu_reset,guest_errors,exec \
 	        -D qemu.log \
 	        -no-reboot \
@@ -231,7 +250,7 @@ run-debug: $(OS_IMAGE)
 run-serial: $(OS_IMAGE)
 	@echo ">>> Starting QEMU with serial output..."
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
-	        -m 128M \
+	        -m 256M \
 	        -serial file:serial.log \
 	        -monitor stdio
 
@@ -240,7 +259,7 @@ debug: $(OS_IMAGE)
 	@echo ">>> Starting QEMU with GDB server..."
 	@echo ">>> Connect with: gdb -ex 'target remote localhost:1234'"
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
-	        -m 128M \
+	        -m 256M \
 	        -s -S \
 	        -monitor stdio
 

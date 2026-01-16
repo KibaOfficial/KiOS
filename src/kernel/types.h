@@ -11,24 +11,24 @@
  */
 
 #ifndef KIOS_TYPES_H
-#ifndef KIOS_TYPES_H
 #define KIOS_TYPES_H
 
-#include <stdint.h>
 
-#endif /* KIOS_TYPES_H */
+// Eigene Standard-Typen (ohne libc)
+typedef unsigned char      uint8_t;
+typedef signed char        int8_t;
+typedef unsigned short     uint16_t;
+typedef signed short       int16_t;
+typedef unsigned int       uint32_t;
+typedef signed int         int32_t;
+typedef unsigned long long uint64_t;
+typedef signed long long   int64_t;
+
 typedef uint64_t            size_t;
 typedef int64_t             ssize_t;
-
-/* Pointer-sized Integer */
 typedef uint64_t            uintptr_t;
 typedef int64_t             intptr_t;
-
-/* Boolean */
 typedef enum { false = 0, true = 1 } bool;
-
-/* NULL Pointer */
 #define NULL ((void*)0)
-
 
 #endif /* KIOS_TYPES_H */

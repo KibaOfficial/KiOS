@@ -4,7 +4,7 @@
 #ifndef KIOS_GDT_H
 #define KIOS_GDT_H
 
-#include <stdint.h>
+#include "types.h"
 
 void gdt_init(void* tss_ptr, uint16_t tss_size);
 

@@ -15,12 +15,15 @@ const shell_command_t shell_commands[] = {
     {"color",   cmd_color,   "Change text color (usage: color <fg> <bg>)"},
     {"mem",     cmd_mem,     "Show memory information"},
     {"mmap",    cmd_mmap,    "Show physical memory map"},
+    {"meminfo", cmd_meminfo, "Show detailed memory statistics"},
+    {"memtest", cmd_memtest, "Run comprehensive memory stress tests"},
     {"time",    cmd_time,    "Show uptime"},
     {"reboot",  cmd_reboot,  "Reboot the system"},
     {"shutdown",cmd_shutdown, "Shutdown the system"},
     {"halt",    cmd_halt,    "Halt the system"},
     {"netconf", cmd_netconf,  "Configure network interface"},
-    {"fault",   cmd_fault,   "Trigger CPU exceptions for testing (usage: fault <div0|ud|pf>)"}
+    {"fault",   cmd_fault,   "Trigger CPU exceptions for testing (usage: fault <div0|ud|pf>)"},
+    {"vmtest",  cmd_vmtest,  "Test Virtual Memory Manager"}
 };
 
 const int shell_commands_count = sizeof(shell_commands) / sizeof(shell_commands[0]);

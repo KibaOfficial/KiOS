@@ -20,6 +20,9 @@
 #include "tss.h"
 #include "gdt.h"
 #include "pic.h"
+#include "mm/pmm.h"
+#include "mm/vmm.h"
+#include "mm/heap.h"
 
 
 
@@ -57,6 +60,15 @@ void kernel_main(void)
     /* IDT initialisieren (setzt isr8 mit ist=1) */
     idt_init();
 
+    /* PMM Initialisieren */
+    pmm_init();
+
+    /* VMM Initialisieren */
+    vmm_init();
+
+    /* Heap Initialisieren */
+    heap_init();
+
     /* Keyboard Interrupt Handler initialisieren (aktiviert IRQ1) */
     keyboard_irq_init();
 
@@ -77,7 +89,7 @@ void kernel_main(void)
     vga_println("");
     vga_println("");
 
-    vga_print_colored("  Welcome to KiOS v0.2.0", VGA_YELLOW, VGA_BLACK);
+    vga_print_colored("  Welcome to KiOS v0.3.0-dev", VGA_YELLOW, VGA_BLACK);
     vga_println(" - A simple 64-bit operating system");
     vga_println("");
 

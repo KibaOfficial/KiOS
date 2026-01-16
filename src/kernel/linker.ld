@@ -15,6 +15,9 @@ SECTIONS
 {
     /* Kernel startet bei 1MB */
     . = KERNEL_BASE;
+
+    /* Kernel-Start-Symbol */
+        __kernel_start = .;
     
     /* Text Section - Ausführbarer Code */
     .text : ALIGN(4096)

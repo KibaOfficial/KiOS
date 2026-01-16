@@ -3,7 +3,7 @@
 //
 #include "gdt.h"
 #include <string.h>
-#include <stdint.h>
+// #include <stdint.h>
 
 // GDT-Einträge (Null, Code, Data, TSS Low, TSS High)
 __attribute__((aligned(16)))
