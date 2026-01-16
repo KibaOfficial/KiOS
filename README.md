@@ -12,7 +12,7 @@ KiOS is a minimalist 64-bit operating system written in C and Assembly.
 - ✅ **64-bit Long Mode** - Full x86_64 support
 - ✅ **Custom Bootloader** - Two-stage bootloader with chunkwise kernel loading
 - ✅ **VGA Text Mode** - 80x25 color text output
-- ✅ **Interactive Shell** - Command-line interface with 14 built-in commands
+- ✅ **Interactive Shell** - Command-line interface with 16 built-in commands
 - ✅ **Interrupt Handling** - IDT with full exception and IRQ support
 - ✅ **Exception Handlers** - Detailed error reporting for CPU exceptions
 - ✅ **PIC Configuration** - IRQ remapping to avoid conflicts
@@ -21,13 +21,14 @@ KiOS is a minimalist 64-bit operating system written in C and Assembly.
 - ✅ **Scrolling Support** - Automatic screen scrolling
 - ✅ **Modular Design** - Clean separation of components
 
-### Memory Management (v0.3.0)
+### Memory Management (v0.3.0) ✅
 - ✅ **Physical Memory Manager (PMM)** - Bitmap-based allocator managing 128MB RAM
-- ✅ **Virtual Memory Manager (VMM)** - 4-level page table manipulation
+- ✅ **Virtual Memory Manager (VMM)** - 4-level page table manipulation with memory barriers
 - ✅ **Page Allocation** - pmm_alloc_page() and pmm_free_page()
 - ✅ **Virtual Mapping** - vmm_map_page() and vmm_unmap_page()
 - ✅ **Address Translation** - vmm_virt_to_phys()
-- 🔄 **Heap Allocator** - kmalloc/kfree (In Development)
+- ✅ **Heap Allocator** - kmalloc/kfree with bump allocator and on-demand page mapping
+- ✅ **Dynamic Bootloader** - Automatic kernel sector calculation
 
 ## System Requirements
 
@@ -83,6 +84,8 @@ KiOS includes an interactive shell with the following commands:
 | `color`    | Display VGA color palette                   |
 | `mem`      | Show memory layout                          |
 | `mmap`     | Show physical memory map (E820)             |
+| `meminfo`  | Show detailed memory statistics             |
+| `memtest`  | Run comprehensive memory stress tests       |
 | `vmtest`   | Test Virtual Memory Manager (VMM)           |
 | `time`     | Display current system time (uptime)        |
 | `fault`    | Trigger a CPU exception for testing         |
@@ -131,6 +134,8 @@ KiOS-New/
 │       │   ├── pmm.h           # PMM Header
 │       │   ├── vmm.c           # Virtual Memory Manager
 │       │   ├── vmm.h           # VMM Header
+│       │   ├── heap.c          # Kernel Heap Allocator
+│       │   ├── heap.h          # Heap Header
 │       │   └── memory_map.h    # Memory Map utilities
 │       └── commands/           # Individual command modules
 │           ├── help.c
@@ -140,6 +145,8 @@ KiOS-New/
 │           ├── color.c
 │           ├── mem.c
 │           ├── mmap.c
+│           ├── meminfo.c       # Memory statistics command
+│           ├── memtest.c       # Memory stress test command
 │           ├── vmtest.c        # VMM Test command
 │           ├── time.c
 │           ├── reboot.c
@@ -164,7 +171,7 @@ KiOS-New/
    - Temporary GDT setup
    - Page table configuration (1GB identity mapping with 2MB pages)
    - Transition to Long Mode (64-bit)
-   - Chunkwise kernel loading (up to 73 sectors = ~36KB)
+   - Dynamic kernel sector calculation (automatically loads correct kernel size)
    - Load kernel from sector 34 to `0x100000` (1MB)
 4. **Kernel** performs:
    - VGA initialization
@@ -174,6 +181,7 @@ KiOS-New/
    - IDT initialization with 256 entries
    - PMM initialization (Physical Memory Manager)
    - VMM initialization (Virtual Memory Manager)
+   - Heap initialization (Kernel Heap Allocator)
    - Keyboard interrupt handler activation (IRQ1)
    - Interrupt activation (STI)
    - Shell startup
@@ -188,14 +196,13 @@ KiOS-New/
 0x00009000                 PML4 (Page Map Level 4)
 0x0000A000                 PDPT (Page Directory Pointer Table)
 0x0000B000                 PD (Page Directory)
-0x00010000 - 0x00010002    Memory Map Entry Count
-0x00010002 - ...           Memory Map Entries (E820)
+0x0000C000                 PT (Page Table)
+0x00010000                 PMM Bitmap (16 KB for 128 MB RAM)
 0x000A0000 - 0x000BFFFF    VGA Memory
 0x000B8000 - 0x000B8F9F    VGA Text Buffer (80x25)
-0x00100000 - ...           Kernel (1MB+)
-0x00110000+                PMM Bitmap (after kernel)
+0x00100000 - ...           Kernel (1MB+, ~97 sectors = 49KB)
 0x00200000                 Stack Top
-0xFFFF800000000000+        Kernel Heap (Virtual, for future use)
+0xFFFF800000000000+        Kernel Heap (Virtual, 16MB initial size)
 ```
 
 ### Compiler Flags
@@ -249,19 +256,33 @@ When a CPU exception occurs, KiOS displays:
 - TLB invalidation after page table modifications
 - API: `vmm_map_page()`, `vmm_unmap_page()`, `vmm_virt_to_phys()`
 
-**vmtest Command**
-Tests VMM functionality by:
-1. Allocating a physical page via PMM
-2. Mapping it to a virtual address (`0xFFFF800000001000`)
-3. Verifying virtual-to-physical translation
-4. Writing and reading test data (`0xDEADBEEFCAFEBABE`)
-5. Unmapping the page
-6. Freeing the physical page
+**Heap Allocator**
+- Bump allocator starting at `0xFFFF800000000000`
+- 16 MB initial heap size
+- On-demand page mapping via VMM
+- `kmalloc(size)` with 16-byte alignment
+- `kfree(ptr)` as no-op (sufficient for v0.3.0)
+- API: `kmalloc()`, `kfree()`, `heap_total_allocated()`, `heap_current_size()`
+
+**memtest Command**
+Comprehensive stress testing with 6 test suites:
+1. PMM page allocation (50 pages)
+2. VMM page mapping with verification
+3. Memory read/write with unique test patterns
+4. VMM page unmapping with verification
+5. PMM page freeing
+6. Heap allocations (100 blocks × 256 bytes) with data integrity verification
+
+**meminfo Command**
+Displays detailed statistics for:
+- PMM: Total/Used/Free pages, usage percentage
+- VMM: PML4 address, page size, paging levels
+- Heap: Base address, allocated bytes, current size, pages mapped
 
 ## Known Limitations
 
 - No timer interrupts (IRQ0 not used yet)
-- No heap allocator (kmalloc/kfree in development)
+- Heap allocator is simple bump allocator (no free-list, kfree is no-op)
 - No multitasking/process management
 - No filesystem support
 - No network stack

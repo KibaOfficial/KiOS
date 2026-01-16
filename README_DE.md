@@ -12,7 +12,7 @@ KiOS ist ein minimalistisches 64-Bit-Betriebssystem, geschrieben in C und Assemb
 ✅ **64-bit Long Mode** - Vollständige x86_64-Unterstützung
 ✅ **Eigener Bootloader** - Zweistufiger Bootloader mit chunked Kernel-Loading
 ✅ **VGA Text Mode** - 80x25 Farbtext-Ausgabe
-✅ **Interaktive Shell** - Kommandozeilen-Interface mit 14 eingebauten Befehlen
+✅ **Interaktive Shell** - Kommandozeilen-Interface mit 16 eingebauten Befehlen
 ✅ **Interrupt-Behandlung** - IDT mit vollständiger Exception- und IRQ-Unterstützung
 ✅ **Exception-Handler** - Detaillierte Fehlerausgabe für CPU-Exceptions
 ✅ **PIC-Konfiguration** - IRQ-Remapping zur Konfliktvermeidung
@@ -21,13 +21,14 @@ KiOS ist ein minimalistisches 64-Bit-Betriebssystem, geschrieben in C und Assemb
 ✅ **Scrolling-Unterstützung** - Automatisches Bildschirm-Scrolling
 ✅ **Modulares Design** - Saubere Trennung der Komponenten
 
-### Speicherverwaltung (v0.3.0)
+### Speicherverwaltung (v0.3.0) ✅
 ✅ **Physical Memory Manager (PMM)** - Bitmap-basierter Allocator für 128MB RAM
-✅ **Virtual Memory Manager (VMM)** - 4-Level Page Table Manipulation
+✅ **Virtual Memory Manager (VMM)** - 4-Level Page Table Manipulation mit Memory Barriers
 ✅ **Page-Allokation** - pmm_alloc_page() und pmm_free_page()
 ✅ **Virtuelles Mapping** - vmm_map_page() und vmm_unmap_page()
 ✅ **Adressübersetzung** - vmm_virt_to_phys()
-🔄 **Heap Allocator** - kmalloc/kfree (In Entwicklung)
+✅ **Heap Allocator** - kmalloc/kfree mit Bump Allocator und On-Demand Page Mapping
+✅ **Dynamischer Bootloader** - Automatische Kernel-Sektor-Berechnung
 
 ## Systemanforderungen
 
@@ -83,6 +84,8 @@ KiOS enthält eine interaktive Shell mit folgenden Befehlen:
 | `color`     | VGA-Farbpalette anzeigen                      |
 | `mem`       | Speicher-Layout anzeigen                      |
 | `mmap`      | Physische Memory Map anzeigen (E820)          |
+| `meminfo`   | Detaillierte Speicher-Statistiken anzeigen    |
+| `memtest`   | Umfassende Speicher-Stress-Tests durchführen  |
 | `vmtest`    | Virtual Memory Manager (VMM) testen           |
 | `time`      | Systemzeit/Uptime anzeigen                    |
 | `fault`     | CPU-Exception auslösen (Test)                 |
@@ -119,6 +122,8 @@ KiOS-New/
 │       │   ├── pmm.h           # PMM Header
 │       │   ├── vmm.c           # Virtual Memory Manager
 │       │   ├── vmm.h           # VMM Header
+│       │   ├── heap.c          # Kernel Heap Allocator
+│       │   ├── heap.h          # Heap Header
 │       │   └── memory_map.h    # Memory Map Utilities
 │       └── commands/           # Einzelne Command-Module
 │           ├── help.c
@@ -128,6 +133,8 @@ KiOS-New/
 │           ├── color.c
 │           ├── mem.c
 │           ├── mmap.c
+│           ├── meminfo.c       # Speicher-Statistik-Command
+│           ├── memtest.c       # Speicher-Stress-Test-Command
 │           ├── vmtest.c        # VMM Test-Command
 │           ├── time.c
 │           ├── reboot.c
@@ -152,7 +159,7 @@ KiOS-New/
    - Temporäres GDT-Setup
    - Page-Table-Konfiguration (1GB Identity Mapping mit 2MB-Pages)
    - Übergang zu Long Mode (64-bit)
-   - Chunked Kernel Loading (bis zu 73 Sektoren = ~36KB)
+   - Dynamische Kernel-Sektor-Berechnung (lädt automatisch korrekte Kernel-Größe)
    - Kernel von Sektor 34 nach `0x100000` (1MB) laden
 4. **Kernel** führt aus:
    - VGA-Initialisierung
@@ -162,6 +169,7 @@ KiOS-New/
    - IDT-Initialisierung mit 256 Einträgen
    - PMM-Initialisierung (Physical Memory Manager)
    - VMM-Initialisierung (Virtual Memory Manager)
+   - Heap-Initialisierung (Kernel Heap Allocator)
    - Tastatur-Interrupt-Handler aktivieren (IRQ1)
    - Interrupt-Aktivierung (STI)
    - Shell starten
@@ -176,14 +184,13 @@ KiOS-New/
 0x00009000                 PML4 (Page Map Level 4)
 0x0000A000                 PDPT (Page Directory Pointer Table)
 0x0000B000                 PD (Page Directory)
-0x00010000 - 0x00010002    Memory Map Entry Count
-0x00010002 - ...           Memory Map Entries (E820)
+0x0000C000                 PT (Page Table)
+0x00010000                 PMM Bitmap (16 KB für 128 MB RAM)
 0x000A0000 - 0x000BFFFF    VGA-Speicher
 0x000B8000 - 0x000B8F9F    VGA Text Buffer (80x25)
-0x00100000 - ...           Kernel (1MB+)
-0x00110000+                PMM Bitmap (nach Kernel)
+0x00100000 - ...           Kernel (1MB+, ~97 Sektoren = 49KB)
 0x00200000                 Stack Top
-0xFFFF800000000000+        Kernel Heap (Virtuell, für zukünftige Nutzung)
+0xFFFF800000000000+        Kernel Heap (Virtuell, 16MB initiale Größe)
 ```
 
 ### Compiler-Flags
@@ -214,19 +221,33 @@ Das `-mgeneral-regs-only` Flag ist essentiell, um CPU-Exceptions durch SSE-Instr
 - TLB-Invalidierung nach Page Table Änderungen
 - API: `vmm_map_page()`, `vmm_unmap_page()`, `vmm_virt_to_phys()`
 
-**vmtest Command**
-Testet VMM-Funktionalität durch:
-1. Allokation einer physischen Page via PMM
-2. Mapping auf virtuelle Adresse (`0xFFFF800000001000`)
-3. Überprüfung der virtuell-zu-physisch Übersetzung
-4. Schreiben und Lesen von Testdaten (`0xDEADBEEFCAFEBABE`)
-5. Unmapping der Page
-6. Freigabe der physischen Page
+**Heap Allocator**
+- Bump Allocator beginnend bei `0xFFFF800000000000`
+- 16 MB initiale Heap-Größe
+- On-Demand Page Mapping via VMM
+- `kmalloc(size)` mit 16-Byte Alignment
+- `kfree(ptr)` als No-Op (ausreichend für v0.3.0)
+- API: `kmalloc()`, `kfree()`, `heap_total_allocated()`, `heap_current_size()`
+
+**memtest Command**
+Umfassende Stress-Tests mit 6 Test-Suites:
+1. PMM Page Allocation (50 Pages)
+2. VMM Page Mapping mit Verifikation
+3. Memory Read/Write mit eindeutigen Test-Patterns
+4. VMM Page Unmapping mit Verifikation
+5. PMM Page Freeing
+6. Heap Allocations (100 Blöcke × 256 Bytes) mit Datenintegritätsprüfung
+
+**meminfo Command**
+Zeigt detaillierte Statistiken für:
+- PMM: Total/Used/Free Pages, Auslastung in %
+- VMM: PML4-Adresse, Page-Größe, Paging-Levels
+- Heap: Base-Adresse, allokierte Bytes, aktuelle Größe, gemappte Pages
 
 ## Bekannte Einschränkungen
 
 - Keine Timer-Interrupts (IRQ0 noch nicht genutzt)
-- Kein Heap-Allocator (kmalloc/kfree in Entwicklung)
+- Heap Allocator ist einfacher Bump Allocator (keine Free-List, kfree ist No-Op)
 - Kein Multitasking/Prozess-Management
 - Keine Dateisystem-Unterstützung
 - Kein Netzwerk-Stack

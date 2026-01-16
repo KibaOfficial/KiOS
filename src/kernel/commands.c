@@ -15,6 +15,8 @@ const shell_command_t shell_commands[] = {
     {"color",   cmd_color,   "Change text color (usage: color <fg> <bg>)"},
     {"mem",     cmd_mem,     "Show memory information"},
     {"mmap",    cmd_mmap,    "Show physical memory map"},
+    {"meminfo", cmd_meminfo, "Show detailed memory statistics"},
+    {"memtest", cmd_memtest, "Run comprehensive memory stress tests"},
     {"time",    cmd_time,    "Show uptime"},
     {"reboot",  cmd_reboot,  "Reboot the system"},
     {"shutdown",cmd_shutdown, "Shutdown the system"},
