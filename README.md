@@ -4,7 +4,7 @@
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Architecture](https://img.shields.io/badge/arch-x86__64-orange.svg)
 
-KiOS is a minimalist 64-bit operating system written in C and Assembly, designed for educational purposes and OS development learning.
+KiOS is a minimalist 64-bit operating system written in C and Assembly.
 
 ## Features
 
@@ -291,4 +291,4 @@ Parts of this project were created with the assistance of generative AI models. 
 
 ---
 
-**Note:** This is an educational project. It is not intended for production use.
+**Note:** KiOS is a hobby operating system project. While functional, it is not intended for production use.
