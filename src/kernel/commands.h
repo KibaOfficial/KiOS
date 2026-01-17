@@ -13,6 +13,8 @@ void cmd_reboot(const char* args);
 void cmd_halt(const char* args);
 void cmd_mem(const char* args);
 void cmd_time(const char* args);
+void cmd_uptime(const char* args);
+void cmd_tasks(const char* args);
 void cmd_netconf(const char* args);
 void cmd_shutdown(const char* args);
 

@@ -220,6 +220,11 @@ irq_common_stub:
     mov rdi, rsp    ; Pointer auf Register-Frame
     call irq_handler
 
+    ; WICHTIG: irq_handler kann einen neuen Stack-Pointer in RAX zurückgeben!
+    ; Wenn der Scheduler einen Task-Switch gemacht hat, zeigt RAX auf den
+    ; Stack des neuen Tasks. Wir laden dann einfach RSP neu.
+    mov rsp, rax    ; Neuer Stack-Pointer (oder der gleiche, wenn kein Switch)
+
     ; Segment-Register wiederherstellen
     pop rax
     mov gs, ax

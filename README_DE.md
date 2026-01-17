@@ -30,6 +30,16 @@ KiOS ist ein minimalistisches 64-Bit-Betriebssystem, geschrieben in C und Assemb
 ✅ **Heap Allocator** - kmalloc/kfree mit Bump Allocator und On-Demand Page Mapping
 ✅ **Dynamischer Bootloader** - Automatische Kernel-Sektor-Berechnung
 
+
+### Multitasking & Scheduling (v0.4.0) ✅
+- ✅ **PIT Timer** - Programmable Interval Timer läuft bei 100Hz
+- ✅ **Preemptive Multitasking** - Task-Wechsel alle 100ms
+- ✅ **Round-Robin Scheduler** - Faire CPU-Zeitverteilung
+- ✅ **Task Control Blocks (TCB)** - Vollständige Task-Zustandsverwaltung
+- ✅ **Context Switching** - Stack-Pointer basierter Task-Wechsel
+- ✅ **Kernel Threads** - Tasks laufen im Ring 0
+- ✅ **System Uptime** - Präzise Zeitmessung seit Systemstart
+
 ## Systemanforderungen
 
 **Build-Anforderungen:**
@@ -87,7 +97,9 @@ KiOS enthält eine interaktive Shell mit folgenden Befehlen:
 | `meminfo`   | Detaillierte Speicher-Statistiken anzeigen    |
 | `memtest`   | Umfassende Speicher-Stress-Tests durchführen  |
 | `vmtest`    | Virtual Memory Manager (VMM) testen           |
-| `time`      | Systemzeit/Uptime anzeigen                    |
+| `time`      | Aktuelle Systemzeit anzeigen                  |
+| `uptime`    | System-Laufzeit anzeigen (h/m/s)              |
+| `tasks`     | Alle laufenden Tasks auflisten (PID/Status/Name) |
 | `fault`     | CPU-Exception auslösen (Test)                 |
 | `netconf`   | Netzwerkkonfiguration anzeigen (Platzhalter)  |
 | `reboot`    | System neu starten                            |

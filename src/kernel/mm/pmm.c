@@ -102,7 +102,7 @@ void pmm_init(void)
 		}
 	}
 
-	vga_println("[PMM] Initialized Physical Memory Manager");
+	// PMM initialisiert - keine Ausgabe für sauberes Boot
 }
 
 void* pmm_alloc_page(void) {
