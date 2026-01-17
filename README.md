@@ -1,6 +1,6 @@
 # KiOS - A Simple 64-bit Operating System
 
-![Version](https://img.shields.io/badge/version-0.3.0--dev-blue.svg)
+![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Architecture](https://img.shields.io/badge/arch-x86__64-orange.svg)
 
@@ -29,6 +29,15 @@ KiOS is a minimalist 64-bit operating system written in C and Assembly.
 - ✅ **Address Translation** - vmm_virt_to_phys()
 - ✅ **Heap Allocator** - kmalloc/kfree with bump allocator and on-demand page mapping
 - ✅ **Dynamic Bootloader** - Automatic kernel sector calculation
+
+### Multitasking & Scheduling (v0.4.0) ✅
+- ✅ **PIT Timer** - Programmable Interval Timer running at 100Hz
+- ✅ **Preemptive Multitasking** - Task switching every 100ms
+- ✅ **Round-Robin Scheduler** - Fair CPU time distribution
+- ✅ **Task Control Blocks (TCB)** - Full task state management
+- ✅ **Context Switching** - Stack-pointer based task switching
+- ✅ **Kernel Threads** - Tasks running in Ring 0
+- ✅ **System Uptime** - Precise time tracking since boot
 
 ## System Requirements
 
@@ -87,7 +96,9 @@ KiOS includes an interactive shell with the following commands:
 | `meminfo`  | Show detailed memory statistics             |
 | `memtest`  | Run comprehensive memory stress tests       |
 | `vmtest`   | Test Virtual Memory Manager (VMM)           |
-| `time`     | Display current system time (uptime)        |
+| `time`     | Display current system time                 |
+| `uptime`   | Show system uptime (h/m/s)                  |
+| `tasks`    | List all running tasks (PID/State/Name)     |
 | `fault`    | Trigger a CPU exception for testing         |
 | `netconf`  | Show network configuration (placeholder)    |
 | `reboot`   | Reboot the system                           |

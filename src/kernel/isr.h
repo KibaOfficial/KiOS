@@ -35,8 +35,11 @@ typedef void (*irq_handler_t)(registers_t*);
 
 /* Funktionen */
 void isr_handler(registers_t* regs);
-void irq_handler(registers_t* regs);
+registers_t* irq_handler(registers_t* regs);  // Gibt (neuen) Stack-Pointer zurück
 void irq_install_handler(int irq, irq_handler_t handler);
 void irq_uninstall_handler(int irq);
+
+/* Task-Switching Support */
+void irq_set_new_stack(registers_t *new_regs);  // Vom Scheduler aufrufen
 
 #endif /* KIOS_ISR_H */

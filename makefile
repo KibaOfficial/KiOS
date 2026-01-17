@@ -57,8 +57,8 @@ KERNEL_ENTRY_SRC = $(KERNEL_DIR)/entry.asm
 KERNEL_ENTRY_OBJ = $(BUILD_DIR)/entry.o
 
 # Ergänze tss.c und gdt.c
-KERNEL_C_SRCS = $(KERNEL_DIR)/main.c $(KERNEL_DIR)/shell.c $(KERNEL_DIR)/commands.c $(KERNEL_DIR)/vga.c $(KERNEL_DIR)/idt.c $(KERNEL_DIR)/isr.c $(KERNEL_DIR)/pic.c $(KERNEL_DIR)/keyboard_irq.c $(KERNEL_DIR)/tss.c $(KERNEL_DIR)/gdt.c $(KERNEL_DIR)/mm/pmm.c $(KERNEL_DIR)/mm/vmm.c $(KERNEL_DIR)/mm/heap.c
-KERNEL_C_OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/commands.o $(BUILD_DIR)/vga.o $(BUILD_DIR)/idt.o $(BUILD_DIR)/isr.o $(BUILD_DIR)/pic.o $(BUILD_DIR)/keyboard_irq.o $(BUILD_DIR)/tss.o $(BUILD_DIR)/gdt.o $(BUILD_DIR)/mm/pmm.o $(BUILD_DIR)/mm/vmm.o $(BUILD_DIR)/mm/heap.o
+KERNEL_C_SRCS = $(KERNEL_DIR)/main.c $(KERNEL_DIR)/shell.c $(KERNEL_DIR)/commands.c $(KERNEL_DIR)/vga.c $(KERNEL_DIR)/idt.c $(KERNEL_DIR)/isr.c $(KERNEL_DIR)/pic.c $(KERNEL_DIR)/pit.c $(KERNEL_DIR)/task.c $(KERNEL_DIR)/keyboard_irq.c $(KERNEL_DIR)/tss.c $(KERNEL_DIR)/gdt.c $(KERNEL_DIR)/mm/pmm.c $(KERNEL_DIR)/mm/vmm.c $(KERNEL_DIR)/mm/heap.c
+KERNEL_C_OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/commands.o $(BUILD_DIR)/vga.o $(BUILD_DIR)/idt.o $(BUILD_DIR)/isr.o $(BUILD_DIR)/pic.o $(BUILD_DIR)/pit.o $(BUILD_DIR)/task.o $(BUILD_DIR)/keyboard_irq.o $(BUILD_DIR)/tss.o $(BUILD_DIR)/gdt.o $(BUILD_DIR)/mm/pmm.o $(BUILD_DIR)/mm/vmm.o $(BUILD_DIR)/mm/heap.o
 
 # IDT Assembly
 IDT_ASM_SRC = $(KERNEL_DIR)/idt_asm.asm
@@ -164,6 +164,16 @@ $(BUILD_DIR)/isr.o: $(KERNEL_DIR)/isr.c | $(BUILD_DIR)
 # Kernel C Code - pic.c
 $(BUILD_DIR)/pic.o: $(KERNEL_DIR)/pic.c | $(BUILD_DIR)
 	@echo ">>> Compiling pic.c..."
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Kernel C Code - pit.c
+$(BUILD_DIR)/pit.o: $(KERNEL_DIR)/pit.c | $(BUILD_DIR)
+	@echo ">>> Compiling pit.c..."
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Kernel C Code - task.c
+$(BUILD_DIR)/task.o: $(KERNEL_DIR)/task.c | $(BUILD_DIR)
+	@echo ">>> Compiling task.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # Kernel C Code - keyboard_irq.c

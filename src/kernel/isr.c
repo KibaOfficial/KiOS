@@ -56,6 +56,9 @@ static const char* exception_messages[] = {
 /* IRQ-Handler Array */
 static irq_handler_t irq_handlers[16] = {0};
 
+/* Globaler Pointer für Task-Switching */
+static registers_t *new_task_regs = NULL;
+
 /*
  * isr_handler - Gemeinsamer Handler für alle Exceptions
  */
@@ -131,10 +134,16 @@ void isr_handler(registers_t* regs) {
 
 /*
  * irq_handler - Gemeinsamer Handler für alle IRQs
+ *
+ * Gibt den (möglicherweise neuen) Stack-Pointer zurück.
+ * Der Scheduler kann den Stack-Pointer ändern für Task-Switching.
  */
-void irq_handler(registers_t* regs) {
+registers_t* irq_handler(registers_t* regs) {
     /* IRQ-Nummer berechnen (32-47 -> 0-15) */
     int irq = regs->int_no - 32;
+
+    /* Globale Variable für Task-Switching zurücksetzen */
+    new_task_regs = NULL;
 
     /* Custom Handler aufrufen, falls registriert */
     if (irq_handlers[irq] != 0) {
@@ -149,6 +158,17 @@ void irq_handler(registers_t* regs) {
     }
     /* Master PIC (IRQ 0-7) */
     outb(PIC1_COMMAND, PIC_EOI);
+
+    /* Stack-Pointer zurückgeben */
+    /* Falls der Handler new_task_regs gesetzt hat, nutzen wir den neuen Stack */
+    return (new_task_regs != NULL) ? new_task_regs : regs;
+}
+
+/*
+ * irq_set_new_stack - Vom IRQ-Handler aufrufen um Stack zu wechseln
+ */
+void irq_set_new_stack(registers_t *new_regs) {
+    new_task_regs = new_regs;
 }
 
 /*

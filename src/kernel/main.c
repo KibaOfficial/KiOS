@@ -20,11 +20,25 @@
 #include "tss.h"
 #include "gdt.h"
 #include "pic.h"
+#include "pit.h"
+#include "task.h"
 #include "mm/pmm.h"
 #include "mm/vmm.h"
 #include "mm/heap.h"
 
 
+
+/* =============================================================================
+ * Demo Tasks für Multitasking
+ * =============================================================================
+ */
+
+// Shell als Task
+static void shell_task(void) {
+    shell_run();
+    // Falls Shell beendet wird
+    task_exit();
+}
 
 /*
  * kernel_main - Kernel Einstiegspunkt
@@ -69,12 +83,6 @@ void kernel_main(void)
     /* Heap Initialisieren */
     heap_init();
 
-    /* Keyboard Interrupt Handler initialisieren (aktiviert IRQ1) */
-    keyboard_irq_init();
-
-    /* Interrupts aktivieren */
-    __asm__ volatile("sti");
-
     /* ASCII-Banner ausgeben (nur Standard-ASCII, VGA-kompatibel) */
     vga_println("");
     vga_print_colored("    _  ___  ___  ____   ", VGA_LIGHT_CYAN, VGA_BLACK);
@@ -89,7 +97,7 @@ void kernel_main(void)
     vga_println("");
     vga_println("");
 
-    vga_print_colored("  Welcome to KiOS v0.3.0", VGA_YELLOW, VGA_BLACK);
+    vga_print_colored("  Welcome to KiOS v0.4.0", VGA_YELLOW, VGA_BLACK);
     vga_println(" - A simple 64-bit operating system");
     vga_println("");
 
@@ -102,10 +110,32 @@ void kernel_main(void)
     vga_println(" for available commands.");
     vga_println("");
 
-    /* Shell starten */
-    shell_run();
+    /* Task-System initialisieren */
+    task_init();
 
-    /* Sollten wir nie erreichen */
+    /* Tasks erstellen */
+    task_create("shell", shell_task, 16384);  // Shell mit 16KB Stack
+    // Worker-Tasks können für Demo aktiviert werden:
+    // task_create("worker_a", task_a, 4096);
+    // task_create("worker_b", task_b, 4096);
+
+    /* PIT (Timer) initialisieren */
+    pit_init();
+
+    /* Keyboard Interrupt Handler initialisieren (aktiviert IRQ1) */
+    keyboard_irq_init();
+
+    /* Scheduler aktivieren - Multitasking ON! */
+    pit_enable_scheduler();
+
+    /* Interrupts aktivieren */
+    __asm__ volatile("sti");
+
+    /* IRQ0 (Timer) aktivieren */
+    pic_clear_mask(0);
+
+    /* Idle Loop - der Scheduler wird nun alle 100ms zu anderen Tasks switchen */
+    /* Wenn kein Task bereit ist, bleibt der Kernel hier im HLT */
     for (;;)
     {
         __asm__ volatile("hlt");

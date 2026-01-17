@@ -14,10 +14,7 @@ void vmm_init(void) {
     // Hole aktuelles CR3 (zeigt auf PML4 von Bootloader)
     current_pml4_phys = vmm_get_cr3();
 
-    vga_println("[VMM] Initialized Virtual Memory Manager");
-    vga_print("      PML4 at: ");
-    vga_print_hex(current_pml4_phys);
-    vga_println("");
+    // VMM initialisiert - keine Ausgabe für sauberes Boot
 }
 
 // Helper: Hole Page Table Entry Pointer (erstellt Tables bei Bedarf)
