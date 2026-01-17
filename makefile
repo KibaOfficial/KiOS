@@ -290,3 +290,12 @@ disasm-kernel: $(KERNEL_ELF)
 # Hexdump
 hexdump: $(OS_IMAGE)
 	hexdump -C $< | head -100
+
+# ISO Image erstellen - DEAKTIVIERT
+# Unser Bootloader nutzt BIOS int 13h mit CHS-Adressen, was nicht mit CD-ROM funktioniert.
+# Für ISO-Support brauchen wir entweder Multiboot/GRUB oder einen eigenen CD-ROM Bootloader.
+# TODO: Implement in future version with Multiboot support
+#
+# iso: $(OS_IMAGE)
+# 	@echo ">>> ISO generation requires Multiboot/GRUB support"
+# 	@echo ">>> Use 'make run' with the raw image instead"
