@@ -93,10 +93,6 @@ void syscall_init(void) {
     //
     wrmsr(MSR_GS_BASE, 0);                    // User GS = 0
     wrmsr(MSR_KERNEL_GS_BASE, (uint64_t)&cpu_data);  // Kernel GS = cpu_data
-
-    vga_print("[SYSCALL] GS_BASE set to: ");
-    vga_print_hex((uint64_t)&cpu_data);
-    vga_println(" - syscall/sysret ready.");
 }
 
 // Setzt den Kernel-Stack in der Per-CPU Struktur
@@ -109,7 +105,7 @@ void syscall_set_kernel_stack(uint64_t stack_top) {
 uint64_t syscall_handler(uint64_t syscall_num, uint64_t arg1, uint64_t arg2, uint64_t arg3) {
     switch (syscall_num) {
         case SYS_EXIT:
-            vga_println("[SYSCALL] sys_exit() called - halting");
+            // Exit: Halt the system (in single-task mode)
             while (1) { asm volatile ("hlt"); }
             return 0;
 
@@ -133,9 +129,7 @@ uint64_t syscall_handler(uint64_t syscall_num, uint64_t arg1, uint64_t arg2, uin
             return 0;
 
         default:
-            vga_print("[SYSCALL] Unknown syscall: ");
-            vga_print_dec(syscall_num);
-            vga_println("");
+            // Unknown syscall
             return (uint64_t)-1;
     }
 }

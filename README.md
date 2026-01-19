@@ -1,6 +1,6 @@
 # KiOS - A Simple 64-bit Operating System
 
-![Version](https://img.shields.io/badge/version-0.4.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Architecture](https://img.shields.io/badge/arch-x86__64-orange.svg)
 
@@ -38,6 +38,15 @@ KiOS is a minimalist 64-bit operating system written in C and Assembly.
 - ✅ **Context Switching** - Stack-pointer based task switching
 - ✅ **Kernel Threads** - Tasks running in Ring 0
 - ✅ **System Uptime** - Precise time tracking since boot
+
+### User Mode & System Calls (v0.5.0) ✅
+- ✅ **Ring 3 User Mode** - Protected user space execution
+- ✅ **GDT User Segments** - User Code/Data segments (DPL 3)
+- ✅ **syscall/sysret** - Modern fast system call interface
+- ✅ **swapgs Mechanism** - Per-CPU data via GS segment register
+- ✅ **System Calls** - sys_write, sys_exit, sys_read (placeholder), sys_yield (placeholder)
+- ✅ **User Page Mapping** - PAGE_USER propagation through page table hierarchy
+- ✅ **TSS RSP0** - Kernel stack for privilege level switches
 
 ## System Requirements
 
@@ -96,6 +105,7 @@ KiOS includes an interactive shell with the following commands:
 | `meminfo`  | Show detailed memory statistics             |
 | `memtest`  | Run comprehensive memory stress tests       |
 | `vmtest`   | Test Virtual Memory Manager (VMM)           |
+| `usertest` | Test Ring 3 User Mode with syscalls         |
 | `time`     | Display current system time                 |
 | `uptime`   | Show system uptime (h/m/s)                  |
 | `tasks`    | List all running tasks (PID/State/Name)     |
@@ -292,12 +302,11 @@ Displays detailed statistics for:
 
 ## Known Limitations
 
-- No timer interrupts (IRQ0 not used yet)
 - Heap allocator is simple bump allocator (no free-list, kfree is no-op)
-- No multitasking/process management
 - No filesystem support
 - No network stack
 - VGA Text Mode limited to 80x25 resolution
+- User mode programs are bytecode only (no ELF loader yet)
 
 ## Contributing
 

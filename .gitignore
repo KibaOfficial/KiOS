@@ -23,8 +23,8 @@ build/
 # Project planning and logs
 plan.md
 qemu.log
-ROADMAP_DE.md
-ROADMAP.md
+# ROADMAP_DE.md
+# ROADMAP.md
 
 # OS-specific files
 .DS_Store

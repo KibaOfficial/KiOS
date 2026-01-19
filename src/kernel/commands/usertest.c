@@ -61,8 +61,6 @@ static const uint8_t user_code[] = {
 void cmd_usertest(const char* args) {
     (void)args;
 
-    vga_println("Testing Ring 3 / User Mode...");
-
     // 1. Pages allozieren
     uint64_t code_phys = (uint64_t)pmm_alloc_page();
     uint64_t stack_phys = (uint64_t)pmm_alloc_page();
@@ -73,7 +71,6 @@ void cmd_usertest(const char* args) {
     }
 
     // 2. Mappen mit PAGE_USER!
-    // vmm_map_page propagiert jetzt PAGE_USER auch zu Parent-Entries
     vmm_map_page(USER_CODE_VADDR, code_phys, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
     vmm_map_page(USER_STACK_VADDR, stack_phys, PAGE_PRESENT | PAGE_WRITE | PAGE_USER);
 
@@ -81,10 +78,9 @@ void cmd_usertest(const char* args) {
     memcpy((void*)USER_CODE_VADDR, user_code, sizeof(user_code));
 
     // 4. Stacks vorbereiten
-    // User Stack: Top of page, 16-byte aligned
     uint64_t user_stack_top = (USER_STACK_VADDR + PAGE_SIZE) - 16;
 
-    // Kernel Stack für Syscalls/Interrupts (statisch, damit er nicht weggeht)
+    // Kernel Stack für Syscalls/Interrupts
     static uint8_t secure_kernel_stack[8192] __attribute__((aligned(16)));
     uint64_t k_stack_top = (uint64_t)secure_kernel_stack + sizeof(secure_kernel_stack);
 
@@ -92,22 +88,8 @@ void cmd_usertest(const char* args) {
     tss_set_kernel_stack(k_stack_top);
     syscall_set_kernel_stack(k_stack_top);
 
-    // Debug: Zeige Kernel-Stack-Adresse
-    vga_print("  Kernel stack: 0x");
-    vga_print_hex(k_stack_top);
-    vga_println("");
-    vga_print("  User stack:   0x");
-    vga_print_hex(user_stack_top);
-    vga_println("");
-    vga_print("  User code:    0x");
-    vga_print_hex(USER_CODE_VADDR);
-    vga_println("");
-
     // 5. TLB FLUSH
-    // Das stellt sicher, dass die CPU die User-Bits in PML4/PDPT/PD neu liest
     vmm_set_cr3(vmm_get_cr3());
-
-    vga_println(">>> Jumping to Ring 3...");
 
     // 6. Sprung in User Mode
     jump_to_usermode(user_stack_top, USER_CODE_VADDR);
