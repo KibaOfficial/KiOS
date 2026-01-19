@@ -25,6 +25,7 @@
 #include "mm/pmm.h"
 #include "mm/vmm.h"
 #include "mm/heap.h"
+#include "syscall.h"
 
 
 
@@ -83,6 +84,9 @@ void kernel_main(void)
     /* Heap Initialisieren */
     heap_init();
 
+    /* Syscall Interface initialisieren (syscall/sysret MSRs) */
+    syscall_init();
+
     /* ASCII-Banner ausgeben (nur Standard-ASCII, VGA-kompatibel) */
     vga_println("");
     vga_print_colored("    _  ___  ___  ____   ", VGA_LIGHT_CYAN, VGA_BLACK);
@@ -97,7 +101,7 @@ void kernel_main(void)
     vga_println("");
     vga_println("");
 
-    vga_print_colored("  Welcome to KiOS v0.4.0", VGA_YELLOW, VGA_BLACK);
+    vga_print_colored("  Welcome to KiOS v0.5.0", VGA_YELLOW, VGA_BLACK);
     vga_println(" - A simple 64-bit operating system");
     vga_println("");
 

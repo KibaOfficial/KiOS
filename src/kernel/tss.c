@@ -14,3 +14,9 @@ void tss_init(void* df_stack, uint64_t df_stack_size) {
     // IO Map Base auf das Ende der TSS setzen (keine IO-Map)
     tss.io_map_base = sizeof(tss_t);
 }
+
+void tss_set_kernel_stack(uint64_t stack_top) {
+    // RSP0 wird von der CPU verwendet wenn ein Interrupt im User Mode (Ring 3) passiert
+    // Die CPU wechselt dann automatisch zu diesem Stack
+    tss.rsp0 = stack_top;
+}

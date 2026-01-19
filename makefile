@@ -56,20 +56,24 @@ STAGE2_BIN = $(BUILD_DIR)/stage2.bin
 KERNEL_ENTRY_SRC = $(KERNEL_DIR)/entry.asm
 KERNEL_ENTRY_OBJ = $(BUILD_DIR)/entry.o
 
-# Ergänze tss.c und gdt.c
-KERNEL_C_SRCS = $(KERNEL_DIR)/main.c $(KERNEL_DIR)/shell.c $(KERNEL_DIR)/commands.c $(KERNEL_DIR)/vga.c $(KERNEL_DIR)/idt.c $(KERNEL_DIR)/isr.c $(KERNEL_DIR)/pic.c $(KERNEL_DIR)/pit.c $(KERNEL_DIR)/task.c $(KERNEL_DIR)/keyboard_irq.c $(KERNEL_DIR)/tss.c $(KERNEL_DIR)/gdt.c $(KERNEL_DIR)/mm/pmm.c $(KERNEL_DIR)/mm/vmm.c $(KERNEL_DIR)/mm/heap.c
-KERNEL_C_OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/commands.o $(BUILD_DIR)/vga.o $(BUILD_DIR)/idt.o $(BUILD_DIR)/isr.o $(BUILD_DIR)/pic.o $(BUILD_DIR)/pit.o $(BUILD_DIR)/task.o $(BUILD_DIR)/keyboard_irq.o $(BUILD_DIR)/tss.o $(BUILD_DIR)/gdt.o $(BUILD_DIR)/mm/pmm.o $(BUILD_DIR)/mm/vmm.o $(BUILD_DIR)/mm/heap.o
+# Ergänze tss.c, gdt.c und syscall.c
+KERNEL_C_SRCS = $(KERNEL_DIR)/main.c $(KERNEL_DIR)/shell.c $(KERNEL_DIR)/commands.c $(KERNEL_DIR)/vga.c $(KERNEL_DIR)/idt.c $(KERNEL_DIR)/isr.c $(KERNEL_DIR)/pic.c $(KERNEL_DIR)/pit.c $(KERNEL_DIR)/task.c $(KERNEL_DIR)/keyboard_irq.c $(KERNEL_DIR)/tss.c $(KERNEL_DIR)/gdt.c $(KERNEL_DIR)/syscall.c $(KERNEL_DIR)/mm/pmm.c $(KERNEL_DIR)/mm/vmm.c $(KERNEL_DIR)/mm/heap.c
+KERNEL_C_OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/commands.o $(BUILD_DIR)/vga.o $(BUILD_DIR)/idt.o $(BUILD_DIR)/isr.o $(BUILD_DIR)/pic.o $(BUILD_DIR)/pit.o $(BUILD_DIR)/task.o $(BUILD_DIR)/keyboard_irq.o $(BUILD_DIR)/tss.o $(BUILD_DIR)/gdt.o $(BUILD_DIR)/syscall.o $(BUILD_DIR)/mm/pmm.o $(BUILD_DIR)/mm/vmm.o $(BUILD_DIR)/mm/heap.o
 
 # IDT Assembly
 IDT_ASM_SRC = $(KERNEL_DIR)/idt_asm.asm
 IDT_ASM_OBJ = $(BUILD_DIR)/idt_asm.o
+
+# Syscall Assembly
+SYSCALL_ASM_SRC = $(KERNEL_DIR)/syscall_asm.asm
+SYSCALL_ASM_OBJ = $(BUILD_DIR)/syscall_asm.o
 
 # Alle Command-Module automatisch finden
 COMMANDS_SRCS = $(wildcard $(KERNEL_DIR)/commands/*.c)
 COMMANDS_OBJS = $(patsubst $(KERNEL_DIR)/commands/%.c,$(BUILD_DIR)/commands/%.o,$(COMMANDS_SRCS))
 
 # Alle Kernel Object Files
-KERNEL_OBJS = $(KERNEL_ENTRY_OBJ) $(IDT_ASM_OBJ) $(KERNEL_C_OBJS) $(COMMANDS_OBJS)
+KERNEL_OBJS = $(KERNEL_ENTRY_OBJ) $(IDT_ASM_OBJ) $(SYSCALL_ASM_OBJ) $(KERNEL_C_OBJS) $(COMMANDS_OBJS)
 
 KERNEL_ELF = $(BUILD_DIR)/kernel.elf
 KERNEL_BIN = $(BUILD_DIR)/kernel.bin
@@ -131,6 +135,11 @@ $(IDT_ASM_OBJ): $(IDT_ASM_SRC) | $(BUILD_DIR)
 	@echo ">>> Assembling IDT stubs..."
 	$(ASM) -f elf64 $< -o $@
 
+# Syscall Assembly
+$(SYSCALL_ASM_OBJ): $(SYSCALL_ASM_SRC) | $(BUILD_DIR)
+	@echo ">>> Assembling syscall entry..."
+	$(ASM) -f elf64 $< -o $@
+
 # Kernel C Code - main.c
 $(BUILD_DIR)/main.o: $(KERNEL_DIR)/main.c | $(BUILD_DIR)
 	@echo ">>> Compiling main.c..."
@@ -190,6 +199,11 @@ $(BUILD_DIR)/tss.o: src/kernel/tss.c src/kernel/tss.h | $(BUILD_DIR)
 $(BUILD_DIR)/gdt.o: src/kernel/gdt.c src/kernel/gdt.h | $(BUILD_DIR)
 	@echo ">>> Compiling gdt.c..."
 	$(CC) $(CFLAGS) -c src/kernel/gdt.c -o $(BUILD_DIR)/gdt.o
+
+# syscall.o
+$(BUILD_DIR)/syscall.o: src/kernel/syscall.c src/kernel/syscall.h | $(BUILD_DIR)
+	@echo ">>> Compiling syscall.c..."
+	$(CC) $(CFLAGS) -c src/kernel/syscall.c -o $(BUILD_DIR)/syscall.o
 
 # pmm.o
 $(BUILD_DIR)/mm/pmm.o: src/kernel/mm/pmm.c src/kernel/mm/pmm.h | $(BUILD_DIR)/mm

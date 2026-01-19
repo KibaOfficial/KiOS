@@ -5,7 +5,7 @@ void cmd_info(const char* args) {
     (void)args;
     vga_println("");
     vga_print_colored("  KiOS ", VGA_LIGHT_CYAN, VGA_BLACK);
-    vga_println("v0.4.0");
+    vga_println("v0.5.0");
     vga_println("");
     vga_print("  Architecture: ");
     vga_println("x86_64 (Long Mode)");

@@ -1,6 +1,6 @@
 # KiOS - Ein einfaches 64-Bit-Betriebssystem
 
-![Version](https://img.shields.io/badge/version-0.3.0--dev-blue.svg)
+![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Architecture](https://img.shields.io/badge/arch-x86__64-orange.svg)
 
@@ -39,6 +39,15 @@ KiOS ist ein minimalistisches 64-Bit-Betriebssystem, geschrieben in C und Assemb
 - ✅ **Context Switching** - Stack-Pointer basierter Task-Wechsel
 - ✅ **Kernel Threads** - Tasks laufen im Ring 0
 - ✅ **System Uptime** - Präzise Zeitmessung seit Systemstart
+
+### User Mode & System Calls (v0.5.0) ✅
+- ✅ **Ring 3 User Mode** - Geschützter User-Space Ausführung
+- ✅ **GDT User Segmente** - User Code/Data Segmente (DPL 3)
+- ✅ **syscall/sysret** - Modernes schnelles Syscall-Interface
+- ✅ **swapgs Mechanismus** - Per-CPU Daten via GS Segment-Register
+- ✅ **System Calls** - sys_write, sys_exit, sys_read (Platzhalter), sys_yield (Platzhalter)
+- ✅ **User Page Mapping** - PAGE_USER Propagierung durch Page Table Hierarchie
+- ✅ **TSS RSP0** - Kernel-Stack für Privilege-Level-Wechsel
 
 ## Systemanforderungen
 
@@ -97,6 +106,7 @@ KiOS enthält eine interaktive Shell mit folgenden Befehlen:
 | `meminfo`   | Detaillierte Speicher-Statistiken anzeigen    |
 | `memtest`   | Umfassende Speicher-Stress-Tests durchführen  |
 | `vmtest`    | Virtual Memory Manager (VMM) testen           |
+| `usertest`  | Ring 3 User Mode mit Syscalls testen          |
 | `time`      | Aktuelle Systemzeit anzeigen                  |
 | `uptime`    | System-Laufzeit anzeigen (h/m/s)              |
 | `tasks`     | Alle laufenden Tasks auflisten (PID/Status/Name) |
@@ -258,12 +268,12 @@ Zeigt detaillierte Statistiken für:
 
 ## Bekannte Einschränkungen
 
-- Keine Timer-Interrupts (IRQ0 noch nicht genutzt)
 - Heap Allocator ist einfacher Bump Allocator (keine Free-List, kfree ist No-Op)
-- Kein Multitasking/Prozess-Management
 - Keine Dateisystem-Unterstützung
 - Kein Netzwerk-Stack
 - VGA Text Mode auf 80x25 Auflösung limitiert
+- User Mode Programme nur als Bytecode (noch kein ELF-Loader)
+- `usertest` Befehl hält das System nach sys_exit an (noch kein Prozess-Management)
 
 ## Mitwirken
 
