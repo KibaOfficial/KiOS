@@ -136,32 +136,28 @@ isr_common_stub:
     push r14
     push r15
 
-    ; Segment-Register sichern
+    ; Segment-Register sichern (nur DS und ES, nicht FS/GS!)
+    ; FS und GS werden über MSRs verwaltet (für swapgs)
     mov ax, ds
     push rax
     mov ax, es
     push rax
-    mov ax, fs
-    push rax
-    mov ax, gs
-    push rax
+    push 0              ; Platzhalter für FS (nicht genutzt)
+    push 0              ; Platzhalter für GS (nicht genutzt)
 
-    ; Kernel Data Segment laden
+    ; Kernel Data Segment laden (nur DS und ES!)
     mov ax, 0x10
     mov ds, ax
     mov es, ax
-    mov fs, ax
-    mov gs, ax
+    ; FS und GS NICHT anfassen - die werden über MSRs verwaltet!
 
     ; C-Handler aufrufen (RSP zeigt auf gesicherte Register)
     mov rdi, rsp
     call isr_handler
 
     ; Segment-Register wiederherstellen
-    pop rax
-    mov gs, ax
-    pop rax
-    mov fs, ax
+    pop rax             ; GS Platzhalter (ignorieren)
+    pop rax             ; FS Platzhalter (ignorieren)
     pop rax
     mov es, ax
     pop rax
@@ -211,22 +207,20 @@ irq_common_stub:
     push r14
     push r15
 
-    ; Segment-Register sichern
+    ; Segment-Register sichern (nur DS und ES, nicht FS/GS!)
+    ; FS und GS werden über MSRs verwaltet (für swapgs)
     mov ax, ds
     push rax
     mov ax, es
     push rax
-    mov ax, fs
-    push rax
-    mov ax, gs
-    push rax
+    push 0              ; Platzhalter für FS (nicht genutzt)
+    push 0              ; Platzhalter für GS (nicht genutzt)
 
-    ; Kernel Data Segment laden
+    ; Kernel Data Segment laden (nur DS und ES!)
     mov ax, 0x10
     mov ds, ax
     mov es, ax
-    mov fs, ax
-    mov gs, ax
+    ; FS und GS NICHT anfassen - die werden über MSRs verwaltet!
 
     ; C-Handler aufrufen
     mov rdi, rsp
@@ -238,10 +232,8 @@ irq_common_stub:
     mov rsp, rax    ; Neuer Stack-Pointer (oder der gleiche, wenn kein Switch)
 
     ; Segment-Register wiederherstellen
-    pop rax
-    mov gs, ax
-    pop rax
-    mov fs, ax
+    pop rax             ; GS Platzhalter (ignorieren)
+    pop rax             ; FS Platzhalter (ignorieren)
     pop rax
     mov es, ax
     pop rax

@@ -77,21 +77,22 @@ void syscall_init(void) {
     wrmsr(MSR_SFMASK, SFMASK_IF | SFMASK_TF | SFMASK_DF);
 
     // 5. GS Base für swapgs konfigurieren
-    // WICHTIG: Beide MSRs auf cpu_data setzen!
-    // - GS_BASE: Wird vom Kernel direkt genutzt
-    // - KERNEL_GS_BASE: Wird nach swapgs in syscall_entry aktiv
+    // KORREKTE Reihenfolge laut OSDev Wiki:
+    //
+    // - GS_BASE = 0 (User GS, leer - wird vom User genutzt)
+    // - KERNEL_GS_BASE = &cpu_data (Kernel per-CPU Struktur)
     //
     // Ablauf:
-    // 1. Kernel läuft mit GS_BASE = &cpu_data
-    // 2. jump_to_usermode macht swapgs: GS_BASE ↔ KERNEL_GS_BASE
-    //    -> GS_BASE = &cpu_data (war KERNEL_GS_BASE)
-    //    -> KERNEL_GS_BASE = &cpu_data (war GS_BASE)
-    // 3. User macht syscall, syscall_entry macht swapgs:
-    //    -> GS_BASE = &cpu_data, KERNEL_GS_BASE = &cpu_data
+    // 1. Kernel initialisiert: GS_BASE=0, KERNEL_GS_BASE=&cpu_data
+    // 2. jump_to_usermode: KEIN swapgs nötig (GS_BASE ist schon 0 für User)
+    // 3. User macht syscall -> syscall_entry:
+    //    - swapgs: GS_BASE=&cpu_data, KERNEL_GS_BASE=0
+    //    - Jetzt funktioniert [gs:0x00] für Kernel-Stack!
+    // 4. sysret -> swapgs zurück:
+    //    - GS_BASE=0 (User), KERNEL_GS_BASE=&cpu_data (Kernel)
     //
-    // Wenn beide auf &cpu_data zeigen, ist es egal wie oft swapgs gemacht wird!
-    wrmsr(MSR_GS_BASE, (uint64_t)&cpu_data);
-    wrmsr(MSR_KERNEL_GS_BASE, (uint64_t)&cpu_data);
+    wrmsr(MSR_GS_BASE, 0);                    // User GS = 0
+    wrmsr(MSR_KERNEL_GS_BASE, (uint64_t)&cpu_data);  // Kernel GS = cpu_data
 
     vga_print("[SYSCALL] GS_BASE set to: ");
     vga_print_hex((uint64_t)&cpu_data);
