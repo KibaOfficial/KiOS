@@ -307,6 +307,7 @@ Displays detailed statistics for:
 - No network stack
 - VGA Text Mode limited to 80x25 resolution
 - User mode programs are bytecode only (no ELF loader yet)
+- `usertest` command halts the system after sys_exit (no process management yet)
 
 ## Contributing
 

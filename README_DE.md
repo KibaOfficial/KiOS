@@ -273,6 +273,7 @@ Zeigt detaillierte Statistiken für:
 - Kein Netzwerk-Stack
 - VGA Text Mode auf 80x25 Auflösung limitiert
 - User Mode Programme nur als Bytecode (noch kein ELF-Loader)
+- `usertest` Befehl hält das System nach sys_exit an (noch kein Prozess-Management)
 
 ## Mitwirken
 
