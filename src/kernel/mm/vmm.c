@@ -18,7 +18,14 @@ void vmm_init(void) {
 }
 
 // Helper: Hole Page Table Entry Pointer (erstellt Tables bei Bedarf)
-static pte_t* vmm_get_pte(uint64_t virt_addr, int create) {
+// flags werden an die Parent-Entries weitergegeben (für PAGE_USER)
+static pte_t* vmm_get_pte_flags(uint64_t virt_addr, int create, uint32_t flags) {
+    // Parent flags: PAGE_USER muss in alle Levels propagiert werden!
+    uint64_t parent_flags = PAGE_PRESENT | PAGE_WRITE;
+    if (flags & PAGE_USER) {
+        parent_flags |= PAGE_USER;
+    }
+
     // PML4 Entry
     pte_t* pml4 = (pte_t*)current_pml4_phys;
     uint64_t pml4_idx = PML4_INDEX(virt_addr);
@@ -39,10 +46,14 @@ static pte_t* vmm_get_pte(uint64_t virt_addr, int create) {
         // Memory Barrier: Sicherstellen dass alle Writes abgeschlossen sind
         __asm__ volatile("mfence" ::: "memory");
 
-        // PML4 Entry setzen
-        pml4[pml4_idx] = pdpt_phys | PAGE_PRESENT | PAGE_WRITE;
+        // PML4 Entry setzen MIT parent_flags (inkl. PAGE_USER wenn nötig)
+        pml4[pml4_idx] = pdpt_phys | parent_flags;
 
         // Memory Barrier nach Parent Entry Write
+        __asm__ volatile("mfence" ::: "memory");
+    } else if ((flags & PAGE_USER) && !(pml4[pml4_idx] & PAGE_USER)) {
+        // Entry existiert aber hat kein USER bit - hinzufügen!
+        pml4[pml4_idx] |= PAGE_USER;
         __asm__ volatile("mfence" ::: "memory");
     }
 
@@ -66,10 +77,14 @@ static pte_t* vmm_get_pte(uint64_t virt_addr, int create) {
         // Memory Barrier
         __asm__ volatile("mfence" ::: "memory");
 
-        // PDPT Entry setzen
-        pdpt[pdpt_idx] = pd_phys | PAGE_PRESENT | PAGE_WRITE;
+        // PDPT Entry setzen MIT parent_flags
+        pdpt[pdpt_idx] = pd_phys | parent_flags;
 
         // Memory Barrier
+        __asm__ volatile("mfence" ::: "memory");
+    } else if ((flags & PAGE_USER) && !(pdpt[pdpt_idx] & PAGE_USER)) {
+        // Entry existiert aber hat kein USER bit - hinzufügen!
+        pdpt[pdpt_idx] |= PAGE_USER;
         __asm__ volatile("mfence" ::: "memory");
     }
 
@@ -93,10 +108,14 @@ static pte_t* vmm_get_pte(uint64_t virt_addr, int create) {
         // Memory Barrier
         __asm__ volatile("mfence" ::: "memory");
 
-        // PD Entry setzen
-        pd[pd_idx] = pt_phys | PAGE_PRESENT | PAGE_WRITE;
+        // PD Entry setzen MIT parent_flags
+        pd[pd_idx] = pt_phys | parent_flags;
 
         // Memory Barrier
+        __asm__ volatile("mfence" ::: "memory");
+    } else if ((flags & PAGE_USER) && !(pd[pd_idx] & PAGE_USER)) {
+        // Entry existiert aber hat kein USER bit - hinzufügen!
+        pd[pd_idx] |= PAGE_USER;
         __asm__ volatile("mfence" ::: "memory");
     }
 
@@ -107,21 +126,23 @@ static pte_t* vmm_get_pte(uint64_t virt_addr, int create) {
     return &pt[pt_idx];
 }
 
+// Wrapper für Rückwärtskompatibilität (ohne flags)
+static pte_t* vmm_get_pte(uint64_t virt_addr, int create) {
+    return vmm_get_pte_flags(virt_addr, create, 0);
+}
+
 void vmm_map_page(uint64_t virt_addr, uint64_t phys_addr, uint32_t flags) {
-    // Hole/Erstelle Page Table Entry
-    pte_t* pte = vmm_get_pte(virt_addr, 1);
+    // Hier MUSS flags übergeben werden, damit pte_get_flags das USER-Bit sieht!
+    pte_t* pte = vmm_get_pte_flags(virt_addr, 1, flags);
+    
     if (!pte) {
         vga_println("[VMM] ERROR: Failed to get PTE!");
         return;
     }
 
-    // Setze Entry
     *pte = (phys_addr & ~0xFFF) | flags | PAGE_PRESENT;
 
-    // Memory Barrier: Sicherstellen dass PTE Write abgeschlossen ist
     __asm__ volatile("mfence" ::: "memory");
-
-    // TLB invalidieren
     vmm_invlpg(virt_addr);
 }
 

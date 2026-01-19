@@ -31,4 +31,7 @@ typedef struct {
 extern tss_t tss;
 void tss_init(void* df_stack, uint64_t df_stack_size);
 
+// Setzt den Kernel-Stack für Ring 0 (wird bei Interrupt aus Ring 3 verwendet)
+void tss_set_kernel_stack(uint64_t stack_top);
+
 #endif // KIOS_TSS_H

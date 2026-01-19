@@ -3,13 +3,11 @@
 ; This software is released under the MIT License.
 ; https://opensource.org/licenses/MIT
 
-; KiOS - IDT Assembly Stubs
-;
-; Diese Datei enthält die ISR (Interrupt Service Routine) Stubs für alle
-; Interrupts und Exceptions. Jeder Stub pusht die Interrupt-Nummer auf den
-; Stack und springt zum gemeinsamen Handler.
+; KiOS - IDT Assembly Stubs mit swapgs Support für Ring 3
 
 [BITS 64]
+
+section .text
 
 ; Externe C-Funktionen
 extern isr_handler
@@ -18,19 +16,23 @@ extern irq_handler
 ; IDT laden
 global idt_load
 idt_load:
-    lidt [rdi]      ; RDI enthält die Adresse des IDT-Pointers
+    lidt [rdi]
     ret
 
-; Makro für ISR ohne Error Code
+; =============================================================================
+; Makros für ISR ohne Error Code
+; =============================================================================
 %macro ISR_NOERRCODE 1
 global isr%1
 isr%1:
-    push 0          ; Dummy Error Code (für einheitlichen Stack-Frame)
+    push 0          ; Dummy Error Code
     push %1         ; Interrupt-Nummer
     jmp isr_common_stub
 %endmacro
 
-; Makro für ISR mit Error Code (CPU pusht automatisch)
+; =============================================================================
+; Makros für ISR mit Error Code (CPU pusht automatisch)
+; =============================================================================
 %macro ISR_ERRCODE 1
 global isr%1
 isr%1:
@@ -38,7 +40,9 @@ isr%1:
     jmp isr_common_stub
 %endmacro
 
-; Makro für IRQ-Handler
+; =============================================================================
+; Makros für IRQ-Handler
+; =============================================================================
 %macro IRQ 2
 global irq%1
 irq%1:
@@ -47,7 +51,9 @@ irq%1:
     jmp irq_common_stub
 %endmacro
 
+; =============================================================================
 ; Exception-Handler (0-31)
+; =============================================================================
 ISR_NOERRCODE 0     ; Division By Zero
 ISR_NOERRCODE 1     ; Debug
 ISR_NOERRCODE 2     ; Non Maskable Interrupt
@@ -81,7 +87,9 @@ ISR_NOERRCODE 29    ; Reserved
 ISR_ERRCODE   30    ; Security Exception (mit Error Code!)
 ISR_NOERRCODE 31    ; Reserved
 
+; =============================================================================
 ; IRQ-Handler (32-47)
+; =============================================================================
 IRQ 0, 32     ; Timer (IRQ0)
 IRQ 1, 33     ; Keyboard (IRQ1)
 IRQ 2, 34     ; Cascade
@@ -99,8 +107,10 @@ IRQ 13, 45    ; FPU
 IRQ 14, 46    ; Primary ATA
 IRQ 15, 47    ; Secondary ATA
 
+; =============================================================================
 ; Gemeinsamer ISR-Stub
-; Stack-Layout beim Eintritt:
+; =============================================================================
+; Stack-Layout beim Eintritt (nach push von num und err):
 ;   [rsp+0]  = Interrupt-Nummer
 ;   [rsp+8]  = Error Code (oder 0)
 ;   [rsp+16] = RIP (von CPU gepusht)
@@ -144,7 +154,7 @@ isr_common_stub:
     mov gs, ax
 
     ; C-Handler aufrufen (RSP zeigt auf gesicherte Register)
-    mov rdi, rsp    ; Pointer auf Register-Frame als Argument
+    mov rdi, rsp
     call isr_handler
 
     ; Segment-Register wiederherstellen
@@ -180,7 +190,9 @@ isr_common_stub:
     ; Interrupt Return
     iretq
 
-; Gemeinsamer IRQ-Stub
+; =============================================================================
+; Gemeinsamer IRQ-Stub mit Task-Switching Support
+; =============================================================================
 irq_common_stub:
     ; Register sichern (gleich wie ISR)
     push rax
@@ -217,7 +229,7 @@ irq_common_stub:
     mov gs, ax
 
     ; C-Handler aufrufen
-    mov rdi, rsp    ; Pointer auf Register-Frame
+    mov rdi, rsp
     call irq_handler
 
     ; WICHTIG: irq_handler kann einen neuen Stack-Pointer in RAX zurückgeben!

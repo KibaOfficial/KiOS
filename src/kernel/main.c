@@ -25,6 +25,7 @@
 #include "mm/pmm.h"
 #include "mm/vmm.h"
 #include "mm/heap.h"
+#include "syscall.h"
 
 
 
@@ -82,6 +83,9 @@ void kernel_main(void)
 
     /* Heap Initialisieren */
     heap_init();
+
+    /* Syscall Interface initialisieren (syscall/sysret MSRs) */
+    syscall_init();
 
     /* ASCII-Banner ausgeben (nur Standard-ASCII, VGA-kompatibel) */
     vga_println("");

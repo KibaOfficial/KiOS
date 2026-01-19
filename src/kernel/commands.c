@@ -25,7 +25,8 @@ const shell_command_t shell_commands[] = {
     {"halt",    cmd_halt,    "Halt the system"},
     {"netconf", cmd_netconf,  "Configure network interface"},
     {"fault",   cmd_fault,   "Trigger CPU exceptions for testing (usage: fault <div0|ud|pf>)"},
-    {"vmtest",  cmd_vmtest,  "Test Virtual Memory Manager"}
+    {"vmtest",  cmd_vmtest,  "Test Virtual Memory Manager"},
+    {"usertest",cmd_usertest,"Test Ring 3 / User Mode transition"}
 };
 
 const int shell_commands_count = sizeof(shell_commands) / sizeof(shell_commands[0]);
