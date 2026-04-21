@@ -5,6 +5,7 @@
 #include "gdt.h"
 #include "vga.h"
 #include "string.h"
+#include "task.h"
 
 // MSR Adressen
 #define MSR_GS_BASE         0xC0000101
@@ -105,9 +106,10 @@ void syscall_set_kernel_stack(uint64_t stack_top) {
 uint64_t syscall_handler(uint64_t syscall_num, uint64_t arg1, uint64_t arg2, uint64_t arg3) {
     switch (syscall_num) {
         case SYS_EXIT:
-            // Exit: Halt the system (in single-task mode)
-            while (1) { asm volatile ("hlt"); }
-            return 0;
+            // // Exit: Halt the system (in single-task mode)
+            // while (1) { asm volatile ("hlt"); }
+            // return 0;
+            task_exit_current((int)arg1);
 
         case SYS_WRITE:
             // arg1 = fd, arg2 = buffer, arg3 = length

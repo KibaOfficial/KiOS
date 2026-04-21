@@ -68,12 +68,16 @@ IDT_ASM_OBJ = $(BUILD_DIR)/idt_asm.o
 SYSCALL_ASM_SRC = $(KERNEL_DIR)/syscall_asm.asm
 SYSCALL_ASM_OBJ = $(BUILD_DIR)/syscall_asm.o
 
+# Task Restore Assembly
+TASK_ASM_SRC = $(KERNEL_DIR)/task_asm.asm
+TASK_ASM_OBJ = $(BUILD_DIR)/task_asm.o
+
 # Alle Command-Module automatisch finden
 COMMANDS_SRCS = $(wildcard $(KERNEL_DIR)/commands/*.c)
 COMMANDS_OBJS = $(patsubst $(KERNEL_DIR)/commands/%.c,$(BUILD_DIR)/commands/%.o,$(COMMANDS_SRCS))
 
 # Alle Kernel Object Files
-KERNEL_OBJS = $(KERNEL_ENTRY_OBJ) $(IDT_ASM_OBJ) $(SYSCALL_ASM_OBJ) $(KERNEL_C_OBJS) $(COMMANDS_OBJS)
+KERNEL_OBJS = $(KERNEL_ENTRY_OBJ) $(IDT_ASM_OBJ) $(SYSCALL_ASM_OBJ) $(TASK_ASM_OBJ) $(KERNEL_C_OBJS) $(COMMANDS_OBJS)
 
 KERNEL_ELF = $(BUILD_DIR)/kernel.elf
 KERNEL_BIN = $(BUILD_DIR)/kernel.bin
@@ -138,6 +142,11 @@ $(IDT_ASM_OBJ): $(IDT_ASM_SRC) | $(BUILD_DIR)
 # Syscall Assembly
 $(SYSCALL_ASM_OBJ): $(SYSCALL_ASM_SRC) | $(BUILD_DIR)
 	@echo ">>> Assembling syscall entry..."
+	$(ASM) -f elf64 $< -o $@
+
+# Task Restore Assembly
+$(TASK_ASM_OBJ): $(TASK_ASM_SRC) | $(BUILD_DIR)
+	@echo ">>> Assembling task restore..."
 	$(ASM) -f elf64 $< -o $@
 
 # Kernel C Code - main.c

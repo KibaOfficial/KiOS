@@ -27,15 +27,14 @@
 #include "mm/heap.h"
 #include "syscall.h"
 
-
-
 /* =============================================================================
  * Demo Tasks für Multitasking
  * =============================================================================
  */
 
 // Shell als Task
-static void shell_task(void) {
+static void shell_task(void)
+{
     shell_run();
     // Falls Shell beendet wird
     task_exit();
@@ -58,10 +57,10 @@ void kernel_main(void)
 
     /* WICHTIG: Alle IRQs maskieren BEVOR wir die IDT laden! */
     /* Sonst kommen Timer-Interrupts rein bevor Handler bereit sind */
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < 16; i++)
+    {
         pic_set_mask(i);
     }
-
 
     /* Double-Fault IST-Stack reservieren (z.B. 8 KB, statisch im BSS) */
     static uint8_t df_stack[8192] __attribute__((aligned(16)));
@@ -101,7 +100,7 @@ void kernel_main(void)
     vga_println("");
     vga_println("");
 
-    vga_print_colored("  Welcome to KiOS v0.5.0", VGA_YELLOW, VGA_BLACK);
+    vga_print_colored("  Welcome to KiOS v0.6.0", VGA_YELLOW, VGA_BLACK);
     vga_println(" - A simple 64-bit operating system");
     vga_println("");
 
@@ -118,7 +117,8 @@ void kernel_main(void)
     task_init();
 
     /* Tasks erstellen */
-    task_create("shell", shell_task, 16384);  // Shell mit 16KB Stack
+    task_t *sh = task_create("shell", shell_task, 16384); // Shell mit 16KB Stack
+    if (sh) task_set_shell(sh);
     // Worker-Tasks können für Demo aktiviert werden:
     // task_create("worker_a", task_a, 4096);
     // task_create("worker_b", task_b, 4096);
