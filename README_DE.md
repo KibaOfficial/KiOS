@@ -1,6 +1,6 @@
 # KiOS - Ein einfaches 64-Bit-Betriebssystem
 
-![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.6.0--dev-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Architecture](https://img.shields.io/badge/arch-x86__64-orange.svg)
 
@@ -273,7 +273,6 @@ Zeigt detaillierte Statistiken für:
 - Kein Netzwerk-Stack
 - VGA Text Mode auf 80x25 Auflösung limitiert
 - User Mode Programme nur als Bytecode (noch kein ELF-Loader)
-- `usertest` Befehl hält das System nach sys_exit an (noch kein Prozess-Management)
 
 ## Mitwirken
 

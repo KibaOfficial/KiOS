@@ -206,29 +206,39 @@ Instead of rewriting our bootloader, we will add Multiboot2 support:
 
 ---
 
-## Version 0.6.0 - Filesystem Support
+## Version 0.6.0 - Process Management & Filesystem (🔄 In Progress - 2026-04-21)
 
-**Goal:** Implement basic filesystem for persistent storage
+**Goal:** Proper process lifecycle management and basic filesystem support
 
-### Planned Features
+### Completed
+- ✅ **sys_exit Process Switch** - Shell correctly returns after program exits
+  - ✅ `task_exit_current()` noreturn with immediate iretq context switch
+  - ✅ `task_restore()` ASM helper for direct task switching without timer
+  - ✅ `task_set_shell()` to register shell as return target after exit
+  - ✅ `initial_regs` in TCB for clean shell restart after user program exits
+  - ✅ `usertest` → "Hello Ring 3!" → `kiba@KiOS>` ✅
+  - ✅ Shell fully functional after returning from Ring 3
+
+### Planned
+- [ ] **VFS Skeleton (in-memory)**
+  - [ ] Abstract filesystem interface (`open`, `read`, `write`, `close`)
+  - [ ] `/dev/stdin` → Keyboard
+  - [ ] `/dev/stdout` → VGA
+  - [ ] `/proc/[pid]/` → Process info
+
 - [ ] **Ramdisk**
   - [ ] Simple in-memory filesystem
   - [ ] File operations: create, read, write, delete
 
-- [ ] **VFS (Virtual File System)**
-  - [ ] Abstract filesystem interface
-  - [ ] Mount points
-
-- [ ] **FAT12/16 Driver (optional)**
-  - [ ] Read FAT filesystem from disk
-  - [ ] Write support
+- [ ] **FAT12 Driver (optional)**
+  - [ ] Read FAT12 filesystem from disk (read-only first)
+  - [ ] Root directory only initially
 
 - [ ] **File Commands**
   - [ ] `ls` - List files
   - [ ] `cat <file>` - Display file contents
-  - [ ] `mkdir`, `rm`, `touch`
 
-**Estimated Complexity:** Very High
+**Actual Complexity:** Very High
 **Estimated Time:** 3-4 weeks
 
 ---
@@ -315,20 +325,17 @@ Want to help implement a feature from this roadmap? Here's how:
 
 ---
 
-**Last Updated:** 2026-01-19
-**Current Focus:** v0.5.0 ✅ COMPLETED - User Mode & System Calls work!
+**Last Updated:** 2026-04-21
+**Current Focus:** v0.6.0 🔄 IN PROGRESS - Process Management & Filesystem
 
-**v0.5.0 Accomplishments:**
-- ✅ GDT with User segments (Ring 3, DPL 3)
-- ✅ syscall/sysret interface via MSRs (EFER, STAR, LSTAR, SFMASK)
-- ✅ swapgs mechanism for per-CPU data access
-- ✅ sys_write() and sys_exit() syscalls working
-- ✅ PAGE_USER propagation through page table hierarchy
-- ✅ `usertest` command executes "Hello Ring 3!" in user mode
-- ✅ IRQ handlers fixed to not corrupt GS register
-- ✅ IRETQ for Ring 0 → Ring 3 transition
+**v0.6.0 Accomplishments so far:**
+- ✅ sys_exit now properly returns to shell via iretq context switch
+- ✅ task_restore() ASM helper for immediate task switching
+- ✅ task_set_shell() registers shell as return target
+- ✅ initial_regs in TCB ensures clean shell restart
+- ✅ Shell fully functional after Ring 3 program exits
 
 **Next Steps:**
-- Planning v0.6.0 - Filesystem Support
-- Consider: Ramdisk, VFS, FAT12/16 driver
-- Optional: ELF loader for proper user programs
+- VFS skeleton (in-memory, /dev/stdin, /dev/stdout)
+- Ramdisk
+- FAT12 driver (optional)
