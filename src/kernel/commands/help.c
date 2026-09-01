@@ -1,7 +1,7 @@
-#include "../commands.h"
-#include "../vga.h"
-#include "../string.h"
-#include "../shell.h"
+#include "commands.h"
+#include "vga.h"
+#include "string.h"
+#include "shell.h"
 
 extern const shell_command_t shell_commands[];
 extern const int shell_commands_count;

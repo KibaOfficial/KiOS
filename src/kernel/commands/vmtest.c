@@ -1,7 +1,7 @@
-#include "../commands.h"
-#include "../vga.h"
-#include "../mm/vmm.h"
-#include "../mm/pmm.h"
+#include "commands.h"
+#include "vga.h"
+#include "vmm.h"
+#include "pmm.h"
 
 void cmd_vmtest(const char* args) {
     (void)args;

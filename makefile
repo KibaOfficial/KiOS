@@ -1,4 +1,3 @@
-
 # =============================================================================
 # KiOS Makefile
 # =============================================================================
@@ -11,17 +10,11 @@ OBJCOPY = objcopy
 QEMU = qemu-system-x86_64
 
 # Verzeichnisse
-BOOT_DIR = src/bootloader/new
+BOOT_DIR = src/bootloader
 KERNEL_DIR = src/kernel
 BUILD_DIR = build
 
 # Compiler Flags
-# -ffreestanding: Keine Standard-Bibliothek
-# -fno-pie: Kein Position Independent Code
-# -fno-stack-protector: Keine Stack-Schutz-Funktionen (brauchen libc)
-# -mno-red-zone: Kein Red Zone (wichtig für Interrupt Handler)
-# -mgeneral-regs-only: KEINE SSE/AVX/FPU Instruktionen (verhindert Crashes!)
-# -m64: 64-Bit Code generieren
 CFLAGS = -ffreestanding \
          -fno-pie \
          -fno-stack-protector \
@@ -31,7 +24,13 @@ CFLAGS = -ffreestanding \
          -Wall \
          -Wextra \
          -O2 \
-         -I$(KERNEL_DIR)
+         -I$(KERNEL_DIR) \
+         -I$(KERNEL_DIR)/arch \
+         -I$(KERNEL_DIR)/drivers \
+         -I$(KERNEL_DIR)/fs \
+         -I$(KERNEL_DIR)/proc \
+         -I$(KERNEL_DIR)/mm \
+         -I$(KERNEL_DIR)/lib
 
 # Linker Flags
 LDFLAGS = -n \
@@ -52,27 +51,64 @@ STAGE1_BIN = $(BUILD_DIR)/stage1.bin
 STAGE2_SRC = $(BOOT_DIR)/stage2.asm
 STAGE2_BIN = $(BUILD_DIR)/stage2.bin
 
-# Kernel
-KERNEL_ENTRY_SRC = $(KERNEL_DIR)/entry.asm
+# Kernel Entry
+KERNEL_ENTRY_SRC = $(KERNEL_DIR)/arch/entry.asm
 KERNEL_ENTRY_OBJ = $(BUILD_DIR)/entry.o
 
-# Ergänze tss.c, gdt.c und syscall.c
-KERNEL_C_SRCS = $(KERNEL_DIR)/main.c $(KERNEL_DIR)/shell.c $(KERNEL_DIR)/commands.c $(KERNEL_DIR)/vga.c $(KERNEL_DIR)/idt.c $(KERNEL_DIR)/isr.c $(KERNEL_DIR)/pic.c $(KERNEL_DIR)/pit.c $(KERNEL_DIR)/task.c $(KERNEL_DIR)/keyboard_irq.c $(KERNEL_DIR)/tss.c $(KERNEL_DIR)/gdt.c $(KERNEL_DIR)/syscall.c $(KERNEL_DIR)/vfs.c $(KERNEL_DIR)/devfs.c $(KERNEL_DIR)/mm/pmm.c $(KERNEL_DIR)/mm/vmm.c $(KERNEL_DIR)/mm/heap.c
-KERNEL_C_OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/commands.o $(BUILD_DIR)/vga.o $(BUILD_DIR)/idt.o $(BUILD_DIR)/isr.o $(BUILD_DIR)/pic.o $(BUILD_DIR)/pit.o $(BUILD_DIR)/task.o $(BUILD_DIR)/keyboard_irq.o $(BUILD_DIR)/tss.o $(BUILD_DIR)/gdt.o $(BUILD_DIR)/syscall.o $(BUILD_DIR)/vfs.o $(BUILD_DIR)/devfs.o $(BUILD_DIR)/mm/pmm.o $(BUILD_DIR)/mm/vmm.o $(BUILD_DIR)/mm/heap.o
-
 # IDT Assembly
-IDT_ASM_SRC = $(KERNEL_DIR)/idt_asm.asm
+IDT_ASM_SRC = $(KERNEL_DIR)/arch/idt_asm.asm
 IDT_ASM_OBJ = $(BUILD_DIR)/idt_asm.o
 
 # Syscall Assembly
-SYSCALL_ASM_SRC = $(KERNEL_DIR)/syscall_asm.asm
+SYSCALL_ASM_SRC = $(KERNEL_DIR)/proc/syscall_asm.asm
 SYSCALL_ASM_OBJ = $(BUILD_DIR)/syscall_asm.o
 
 # Task Restore Assembly
-TASK_ASM_SRC = $(KERNEL_DIR)/task_asm.asm
+TASK_ASM_SRC = $(KERNEL_DIR)/proc/task_asm.asm
 TASK_ASM_OBJ = $(BUILD_DIR)/task_asm.o
 
-# Alle Command-Module automatisch finden
+# Kernel C Sources
+KERNEL_C_SRCS = \
+    $(KERNEL_DIR)/main.c \
+    $(KERNEL_DIR)/shell.c \
+    $(KERNEL_DIR)/commands.c \
+    $(KERNEL_DIR)/arch/gdt.c \
+    $(KERNEL_DIR)/arch/idt.c \
+    $(KERNEL_DIR)/arch/isr.c \
+    $(KERNEL_DIR)/arch/tss.c \
+    $(KERNEL_DIR)/drivers/vga.c \
+    $(KERNEL_DIR)/drivers/keyboard_irq.c \
+    $(KERNEL_DIR)/drivers/pic.c \
+    $(KERNEL_DIR)/drivers/pit.c \
+    $(KERNEL_DIR)/fs/vfs.c \
+    $(KERNEL_DIR)/fs/devfs.c \
+    $(KERNEL_DIR)/proc/task.c \
+    $(KERNEL_DIR)/proc/syscall.c \
+    $(KERNEL_DIR)/mm/pmm.c \
+    $(KERNEL_DIR)/mm/vmm.c \
+    $(KERNEL_DIR)/mm/heap.c
+
+KERNEL_C_OBJS = \
+    $(BUILD_DIR)/main.o \
+    $(BUILD_DIR)/shell.o \
+    $(BUILD_DIR)/commands.o \
+    $(BUILD_DIR)/arch/gdt.o \
+    $(BUILD_DIR)/arch/idt.o \
+    $(BUILD_DIR)/arch/isr.o \
+    $(BUILD_DIR)/arch/tss.o \
+    $(BUILD_DIR)/drivers/vga.o \
+    $(BUILD_DIR)/drivers/keyboard_irq.o \
+    $(BUILD_DIR)/drivers/pic.o \
+    $(BUILD_DIR)/drivers/pit.o \
+    $(BUILD_DIR)/fs/vfs.o \
+    $(BUILD_DIR)/fs/devfs.o \
+    $(BUILD_DIR)/proc/task.o \
+    $(BUILD_DIR)/proc/syscall.o \
+    $(BUILD_DIR)/mm/pmm.o \
+    $(BUILD_DIR)/mm/vmm.o \
+    $(BUILD_DIR)/mm/heap.o
+
+# Command-Module automatisch finden
 COMMANDS_SRCS = $(wildcard $(KERNEL_DIR)/commands/*.c)
 COMMANDS_OBJS = $(patsubst $(KERNEL_DIR)/commands/%.c,$(BUILD_DIR)/commands/%.o,$(COMMANDS_SRCS))
 
@@ -86,7 +122,7 @@ KERNEL_BIN = $(BUILD_DIR)/kernel.bin
 # Targets
 # =============================================================================
 
-.PHONY: all clean run debug
+.PHONY: all clean run run-debug run-serial debug
 
 all: $(OS_IMAGE)
 	@echo ""
@@ -95,15 +131,11 @@ all: $(OS_IMAGE)
 	@echo "  Run with: make run"
 	@echo "========================================="
 
-# Finales OS Image zusammenbauen
-# Layout: [Stage1: 512B][Stage2: 16KB][Padding][Kernel: 32KB+]
+# OS Image
 $(OS_IMAGE): $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN)
 	@echo ">>> Creating OS image..."
-	@# Stage 1 (512 Bytes, Sektor 0)
 	cp $(STAGE1_BIN) $(OS_IMAGE)
-	@# Stage 2 (wird automatisch gepadded von stage2.asm)
 	cat $(STAGE2_BIN) >> $(OS_IMAGE)
-	@# Padding hinzufügen, damit Kernel bei Sektor 34 startet
 	@SIZE=$$(stat -c%s $(OS_IMAGE)); \
 	SECTOR_34=$$((34 * 512)); \
 	if [ $$SIZE -lt $$SECTOR_34 ]; then \
@@ -111,163 +143,157 @@ $(OS_IMAGE): $(STAGE1_BIN) $(STAGE2_BIN) $(KERNEL_BIN)
 		echo "  Adding $$PADDING bytes padding to reach sector 34"; \
 		dd if=/dev/zero bs=1 count=$$PADDING >> $(OS_IMAGE) 2>/dev/null; \
 	fi
-	@# Kernel
 	cat $(KERNEL_BIN) >> $(OS_IMAGE)
-	@# Auf 1.44MB Floppy-Größe auffüllen (optional, für Kompatibilität)
-	@# truncate -s 1474560 $(OS_IMAGE)
 	@echo ">>> Image size:"
 	@ls -lh $(OS_IMAGE)
 
-# Stage 1 Bootloader
+# Stage 1
 $(STAGE1_BIN): $(STAGE1_SRC) | $(BUILD_DIR)
 	@echo ">>> Assembling Stage 1..."
 	$(ASM) -f bin $< -o $@
 
-# Stage 2 Bootloader (depends on kernel.bin to calculate sectors)
+# Stage 2
 $(STAGE2_BIN): $(STAGE2_SRC) $(KERNEL_BIN) | $(BUILD_DIR)
 	$(eval KERNEL_SECTORS := $(shell stat -c%s $(KERNEL_BIN) 2>/dev/null | awk '{print int(($$1 + 511) / 512)}'))
 	@echo ">>> Assembling Stage 2 (Kernel: $(KERNEL_SECTORS) sectors)..."
 	$(ASM) -f bin $< -D_KERNEL_SECTORS=$(KERNEL_SECTORS) -o $@
 
-# Kernel Entry (Assembly)
+# Assembly
 $(KERNEL_ENTRY_OBJ): $(KERNEL_ENTRY_SRC) | $(BUILD_DIR)
 	@echo ">>> Assembling Kernel Entry..."
 	$(ASM) -f elf64 $< -o $@
 
-# IDT Assembly
 $(IDT_ASM_OBJ): $(IDT_ASM_SRC) | $(BUILD_DIR)
 	@echo ">>> Assembling IDT stubs..."
 	$(ASM) -f elf64 $< -o $@
 
-# Syscall Assembly
 $(SYSCALL_ASM_OBJ): $(SYSCALL_ASM_SRC) | $(BUILD_DIR)
 	@echo ">>> Assembling syscall entry..."
 	$(ASM) -f elf64 $< -o $@
 
-# Task Restore Assembly
 $(TASK_ASM_OBJ): $(TASK_ASM_SRC) | $(BUILD_DIR)
 	@echo ">>> Assembling task restore..."
 	$(ASM) -f elf64 $< -o $@
 
-# Kernel C Code - main.c
+# C - root
 $(BUILD_DIR)/main.o: $(KERNEL_DIR)/main.c | $(BUILD_DIR)
 	@echo ">>> Compiling main.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Kernel C Code - shell.c
 $(BUILD_DIR)/shell.o: $(KERNEL_DIR)/shell.c | $(BUILD_DIR)
 	@echo ">>> Compiling shell.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Kernel C Code - commands.c
 $(BUILD_DIR)/commands.o: $(KERNEL_DIR)/commands.c | $(BUILD_DIR)
 	@echo ">>> Compiling commands.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Kernel C Code - vga.c
-$(BUILD_DIR)/vga.o: $(KERNEL_DIR)/vga.c | $(BUILD_DIR)
-	@echo ">>> Compiling vga.c..."
+# C - arch/
+$(BUILD_DIR)/arch/gdt.o: $(KERNEL_DIR)/arch/gdt.c | $(BUILD_DIR)/arch
+	@echo ">>> Compiling arch/gdt.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Kernel C Code - idt.c
-$(BUILD_DIR)/idt.o: $(KERNEL_DIR)/idt.c | $(BUILD_DIR)
-	@echo ">>> Compiling idt.c..."
+$(BUILD_DIR)/arch/idt.o: $(KERNEL_DIR)/arch/idt.c | $(BUILD_DIR)/arch
+	@echo ">>> Compiling arch/idt.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Kernel C Code - isr.c
-$(BUILD_DIR)/isr.o: $(KERNEL_DIR)/isr.c | $(BUILD_DIR)
-	@echo ">>> Compiling isr.c..."
+$(BUILD_DIR)/arch/isr.o: $(KERNEL_DIR)/arch/isr.c | $(BUILD_DIR)/arch
+	@echo ">>> Compiling arch/isr.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Kernel C Code - pic.c
-$(BUILD_DIR)/pic.o: $(KERNEL_DIR)/pic.c | $(BUILD_DIR)
-	@echo ">>> Compiling pic.c..."
+$(BUILD_DIR)/arch/tss.o: $(KERNEL_DIR)/arch/tss.c | $(BUILD_DIR)/arch
+	@echo ">>> Compiling arch/tss.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Kernel C Code - pit.c
-$(BUILD_DIR)/pit.o: $(KERNEL_DIR)/pit.c | $(BUILD_DIR)
-	@echo ">>> Compiling pit.c..."
+# C - drivers/
+$(BUILD_DIR)/drivers/vga.o: $(KERNEL_DIR)/drivers/vga.c | $(BUILD_DIR)/drivers
+	@echo ">>> Compiling drivers/vga.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Kernel C Code - task.c
-$(BUILD_DIR)/task.o: $(KERNEL_DIR)/task.c | $(BUILD_DIR)
-	@echo ">>> Compiling task.c..."
+$(BUILD_DIR)/drivers/keyboard_irq.o: $(KERNEL_DIR)/drivers/keyboard_irq.c | $(BUILD_DIR)/drivers
+	@echo ">>> Compiling drivers/keyboard_irq.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Kernel C Code - keyboard_irq.c
-$(BUILD_DIR)/keyboard_irq.o: $(KERNEL_DIR)/keyboard_irq.c | $(BUILD_DIR)
-	@echo ">>> Compiling keyboard_irq.c..."
+$(BUILD_DIR)/drivers/pic.o: $(KERNEL_DIR)/drivers/pic.c | $(BUILD_DIR)/drivers
+	@echo ">>> Compiling drivers/pic.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# tss.o
-$(BUILD_DIR)/tss.o: src/kernel/tss.c src/kernel/tss.h | $(BUILD_DIR)
-	@echo ">>> Compiling tss.c..."
-	$(CC) $(CFLAGS) -c src/kernel/tss.c -o $(BUILD_DIR)/tss.o
+$(BUILD_DIR)/drivers/pit.o: $(KERNEL_DIR)/drivers/pit.c | $(BUILD_DIR)/drivers
+	@echo ">>> Compiling drivers/pit.c..."
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# gdt.o
-$(BUILD_DIR)/gdt.o: src/kernel/gdt.c src/kernel/gdt.h | $(BUILD_DIR)
-	@echo ">>> Compiling gdt.c..."
-	$(CC) $(CFLAGS) -c src/kernel/gdt.c -o $(BUILD_DIR)/gdt.o
+# C - fs/
+$(BUILD_DIR)/fs/vfs.o: $(KERNEL_DIR)/fs/vfs.c | $(BUILD_DIR)/fs
+	@echo ">>> Compiling fs/vfs.c..."
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# syscall.o
-$(BUILD_DIR)/syscall.o: src/kernel/syscall.c src/kernel/syscall.h | $(BUILD_DIR)
-	@echo ">>> Compiling syscall.c..."
-	$(CC) $(CFLAGS) -c src/kernel/syscall.c -o $(BUILD_DIR)/syscall.o
+$(BUILD_DIR)/fs/devfs.o: $(KERNEL_DIR)/fs/devfs.c | $(BUILD_DIR)/fs
+	@echo ">>> Compiling fs/devfs.c..."
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# vfs.o
-$(BUILD_DIR)/vfs.o: src/kernel/vfs.c src/kernel/vfs.h | $(BUILD_DIR)
-	@echo ">>> Compiling vfs.c..."
-	$(CC) $(CFLAGS) -c src/kernel/vfs.c -o $(BUILD_DIR)/vfs.o
+# C - proc/
+$(BUILD_DIR)/proc/task.o: $(KERNEL_DIR)/proc/task.c | $(BUILD_DIR)/proc
+	@echo ">>> Compiling proc/task.c..."
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# devfs.o
-$(BUILD_DIR)/devfs.o: src/kernel/devfs.c src/kernel/devfs.h | $(BUILD_DIR)
-	@echo ">>> Compiling devfs.c..."
-	$(CC) $(CFLAGS) -c src/kernel/devfs.c -o $(BUILD_DIR)/devfs.o
+$(BUILD_DIR)/proc/syscall.o: $(KERNEL_DIR)/proc/syscall.c | $(BUILD_DIR)/proc
+	@echo ">>> Compiling proc/syscall.c..."
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# pmm.o
-$(BUILD_DIR)/mm/pmm.o: src/kernel/mm/pmm.c src/kernel/mm/pmm.h | $(BUILD_DIR)/mm
-	@echo ">>> Compiling pmm.c..."
-	$(CC) $(CFLAGS) -c src/kernel/mm/pmm.c -o $(BUILD_DIR)/mm/pmm.o
+# C - mm/
+$(BUILD_DIR)/mm/pmm.o: $(KERNEL_DIR)/mm/pmm.c | $(BUILD_DIR)/mm
+	@echo ">>> Compiling mm/pmm.c..."
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/mm/vmm.o: src/kernel/mm/vmm.c src/kernel/mm/vmm.h | $(BUILD_DIR)/mm
-	@echo ">>> Compiling vmm.c..."
-	$(CC) $(CFLAGS) -c src/kernel/mm/vmm.c -o $(BUILD_DIR)/mm/vmm.o
+$(BUILD_DIR)/mm/vmm.o: $(KERNEL_DIR)/mm/vmm.c | $(BUILD_DIR)/mm
+	@echo ">>> Compiling mm/vmm.c..."
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(BUILD_DIR)/mm/heap.o: src/kernel/mm/heap.c src/kernel/mm/heap.h | $(BUILD_DIR)/mm
-	@echo ">>> Compiling heap.c..."
-	$(CC) $(CFLAGS) -c src/kernel/mm/heap.c -o $(BUILD_DIR)/mm/heap.o
+$(BUILD_DIR)/mm/heap.o: $(KERNEL_DIR)/mm/heap.c | $(BUILD_DIR)/mm
+	@echo ">>> Compiling mm/heap.c..."
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# Command modules
+# Commands
 $(BUILD_DIR)/commands/%.o: $(KERNEL_DIR)/commands/%.c | $(BUILD_DIR)/commands
 	@echo ">>> Compiling $<..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# Kernel ELF linken
+# Linken
 $(KERNEL_ELF): $(KERNEL_OBJS)
 	@echo ">>> Linking Kernel..."
 	$(LD) $(LDFLAGS) -o $@ $^
 
-# Kernel Binary extrahieren
 $(KERNEL_BIN): $(KERNEL_ELF)
 	@echo ">>> Extracting Kernel Binary..."
 	$(OBJCOPY) -O binary $< $@
-	@# Auf mindestens 32KB auffüllen
 	@SIZE=$$(stat -c%s $(KERNEL_BIN)); \
 	if [ $$SIZE -lt 32768 ]; then \
 		dd if=/dev/zero bs=1 count=$$((32768 - $$SIZE)) >> $(KERNEL_BIN) 2>/dev/null; \
 	fi
 
-# Build-Verzeichnis erstellen
+# Build-Verzeichnisse
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(BUILD_DIR)/commands:
-	mkdir -p $(BUILD_DIR)/commands
+$(BUILD_DIR)/arch:
+	mkdir -p $(BUILD_DIR)/arch
+
+$(BUILD_DIR)/drivers:
+	mkdir -p $(BUILD_DIR)/drivers
+
+$(BUILD_DIR)/fs:
+	mkdir -p $(BUILD_DIR)/fs
+
+$(BUILD_DIR)/proc:
+	mkdir -p $(BUILD_DIR)/proc
 
 $(BUILD_DIR)/mm:
 	mkdir -p $(BUILD_DIR)/mm
 
-# QEMU starten
+$(BUILD_DIR)/commands:
+	mkdir -p $(BUILD_DIR)/commands
+
+# QEMU
 run: $(OS_IMAGE)
 	@echo ">>> Starting QEMU..."
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
@@ -275,11 +301,8 @@ run: $(OS_IMAGE)
 	        -monitor stdio \
 	        -display sdl,gl=on
 
-# QEMU mit Debug-Ausgabe (CPU-Register, Interrupts, etc.)
 run-debug: $(OS_IMAGE)
 	@echo ">>> Starting QEMU with debug output..."
-	@echo ">>> Log wird nach qemu.log geschrieben"
-	@echo ">>> Verfügbare -d Flags: int,cpu_reset,guest_errors,exec,cpu"
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
 	        -m 256M \
 	        -monitor stdio \
@@ -289,7 +312,6 @@ run-debug: $(OS_IMAGE)
 	        -no-reboot \
 	        -no-shutdown
 
-# QEMU mit serieller Konsole (für printf-style debugging)
 run-serial: $(OS_IMAGE)
 	@echo ">>> Starting QEMU with serial output..."
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
@@ -297,38 +319,18 @@ run-serial: $(OS_IMAGE)
 	        -serial file:serial.log \
 	        -monitor stdio
 
-# QEMU mit GDB Debug Server
 debug: $(OS_IMAGE)
 	@echo ">>> Starting QEMU with GDB server..."
-	@echo ">>> Connect with: gdb -ex 'target remote localhost:1234'"
 	$(QEMU) -drive format=raw,file=$(OS_IMAGE) \
 	        -m 256M \
 	        -s -S \
 	        -monitor stdio
 
-# Aufräumen
 clean:
 	rm -rf $(BUILD_DIR)
-
-# Disassembly anzeigen
-disasm-stage1: $(STAGE1_BIN)
-	ndisasm -b 16 $<
-
-disasm-stage2: $(STAGE2_BIN)
-	ndisasm -b 16 $< | head -100
 
 disasm-kernel: $(KERNEL_ELF)
 	objdump -d $< | head -200
 
-# Hexdump
 hexdump: $(OS_IMAGE)
 	hexdump -C $< | head -100
-
-# ISO Image erstellen - DEAKTIVIERT
-# Unser Bootloader nutzt BIOS int 13h mit CHS-Adressen, was nicht mit CD-ROM funktioniert.
-# Für ISO-Support brauchen wir entweder Multiboot/GRUB oder einen eigenen CD-ROM Bootloader.
-# TODO: Implement in future version with Multiboot support
-#
-# iso: $(OS_IMAGE)
-# 	@echo ">>> ISO generation requires Multiboot/GRUB support"
-# 	@echo ">>> Use 'make run' with the raw image instead"

@@ -1,7 +1,7 @@
-#include "../commands.h"
-#include "../vga.h"
-#include "../io.h"
-#include "../types.h"
+#include "commands.h"
+#include "vga.h"
+#include "io.h"
+#include "types.h"
 
 void cmd_reboot(const char* args) {
     (void)args;

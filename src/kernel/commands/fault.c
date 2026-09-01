@@ -1,5 +1,5 @@
-#include "../commands.h"
-#include "../vga.h"
+#include "commands.h"
+#include "vga.h"
 #include <string.h>
 
 void cmd_fault(const char* args) {

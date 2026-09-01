@@ -1,14 +1,14 @@
 // Copyright (c) 2026 KibaOfficial
 // usertest command - Test Ring 3 / User Mode
 //
-#include "../commands.h"
-#include "../vga.h"
-#include "../syscall.h"
-#include "../tss.h"
-#include "../mm/heap.h"
-#include "../mm/vmm.h"
-#include "../mm/pmm.h"
-#include "../string.h"
+#include "commands.h"
+#include "vga.h"
+#include "syscall.h"
+#include "tss.h"
+#include "heap.h"
+#include "vmm.h"
+#include "pmm.h"
+#include "string.h"
 
 // Einfacher User-Code als Bytecode (Position Independent)
 // Dieser Code macht:

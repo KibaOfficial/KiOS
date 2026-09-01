@@ -1,8 +1,8 @@
-#include "../commands.h"
-#include "../vga.h"
-#include "../mm/pmm.h"
-#include "../mm/vmm.h"
-#include "../mm/heap.h"
+#include "commands.h"
+#include "vga.h"
+#include "pmm.h"
+#include "vmm.h"
+#include "heap.h"
 
 void cmd_meminfo(const char* args) {
     (void)args;

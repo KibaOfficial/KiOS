@@ -5,8 +5,8 @@
  * https://opensource.org/licenses/MIT
  */
 
-#include "../commands.h"
-#include "../vga.h"
+#include "commands.h"
+#include "vga.h"
 
 void cmd_shutdown(const char* args) {
     (void)args;

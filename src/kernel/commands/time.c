@@ -1,7 +1,7 @@
-#include "../commands.h"
-#include "../vga.h"
-#include "../io.h"
-#include "../types.h"
+#include "commands.h"
+#include "vga.h"
+#include "io.h"
+#include "types.h"
 
 #define CMOS_ADDR_PORT  0x70
 #define CMOS_DATA_PORT  0x71

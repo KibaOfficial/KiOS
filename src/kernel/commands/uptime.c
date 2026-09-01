@@ -4,9 +4,9 @@
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
  */
-#include "../shell.h"
-#include "../vga.h"
-#include "../pit.h"
+#include "shell.h"
+#include "vga.h"
+#include "pit.h"
 
 void cmd_uptime(const char* args) {
     (void)args;

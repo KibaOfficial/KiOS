@@ -4,9 +4,9 @@
  * This software is released under the MIT License.
  * https://opensource.org/licenses/MIT
  */
-#include "../shell.h"
-#include "../vga.h"
-#include "../task.h"
+#include "shell.h"
+#include "vga.h"
+#include "task.h"
 
 void cmd_tasks(const char* args) {
     (void)args;

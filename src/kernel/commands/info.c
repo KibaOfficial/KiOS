@@ -1,5 +1,5 @@
-#include "../commands.h"
-#include "../vga.h"
+#include "commands.h"
+#include "vga.h"
 
 void cmd_info(const char* args) {
     (void)args;
