@@ -57,8 +57,8 @@ KERNEL_ENTRY_SRC = $(KERNEL_DIR)/entry.asm
 KERNEL_ENTRY_OBJ = $(BUILD_DIR)/entry.o
 
 # Ergänze tss.c, gdt.c und syscall.c
-KERNEL_C_SRCS = $(KERNEL_DIR)/main.c $(KERNEL_DIR)/shell.c $(KERNEL_DIR)/commands.c $(KERNEL_DIR)/vga.c $(KERNEL_DIR)/idt.c $(KERNEL_DIR)/isr.c $(KERNEL_DIR)/pic.c $(KERNEL_DIR)/pit.c $(KERNEL_DIR)/task.c $(KERNEL_DIR)/keyboard_irq.c $(KERNEL_DIR)/tss.c $(KERNEL_DIR)/gdt.c $(KERNEL_DIR)/syscall.c $(KERNEL_DIR)/mm/pmm.c $(KERNEL_DIR)/mm/vmm.c $(KERNEL_DIR)/mm/heap.c
-KERNEL_C_OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/commands.o $(BUILD_DIR)/vga.o $(BUILD_DIR)/idt.o $(BUILD_DIR)/isr.o $(BUILD_DIR)/pic.o $(BUILD_DIR)/pit.o $(BUILD_DIR)/task.o $(BUILD_DIR)/keyboard_irq.o $(BUILD_DIR)/tss.o $(BUILD_DIR)/gdt.o $(BUILD_DIR)/syscall.o $(BUILD_DIR)/mm/pmm.o $(BUILD_DIR)/mm/vmm.o $(BUILD_DIR)/mm/heap.o
+KERNEL_C_SRCS = $(KERNEL_DIR)/main.c $(KERNEL_DIR)/shell.c $(KERNEL_DIR)/commands.c $(KERNEL_DIR)/vga.c $(KERNEL_DIR)/idt.c $(KERNEL_DIR)/isr.c $(KERNEL_DIR)/pic.c $(KERNEL_DIR)/pit.c $(KERNEL_DIR)/task.c $(KERNEL_DIR)/keyboard_irq.c $(KERNEL_DIR)/tss.c $(KERNEL_DIR)/gdt.c $(KERNEL_DIR)/syscall.c $(KERNEL_DIR)/vfs.c $(KERNEL_DIR)/devfs.c $(KERNEL_DIR)/mm/pmm.c $(KERNEL_DIR)/mm/vmm.c $(KERNEL_DIR)/mm/heap.c
+KERNEL_C_OBJS = $(BUILD_DIR)/main.o $(BUILD_DIR)/shell.o $(BUILD_DIR)/commands.o $(BUILD_DIR)/vga.o $(BUILD_DIR)/idt.o $(BUILD_DIR)/isr.o $(BUILD_DIR)/pic.o $(BUILD_DIR)/pit.o $(BUILD_DIR)/task.o $(BUILD_DIR)/keyboard_irq.o $(BUILD_DIR)/tss.o $(BUILD_DIR)/gdt.o $(BUILD_DIR)/syscall.o $(BUILD_DIR)/vfs.o $(BUILD_DIR)/devfs.o $(BUILD_DIR)/mm/pmm.o $(BUILD_DIR)/mm/vmm.o $(BUILD_DIR)/mm/heap.o
 
 # IDT Assembly
 IDT_ASM_SRC = $(KERNEL_DIR)/idt_asm.asm
@@ -213,6 +213,16 @@ $(BUILD_DIR)/gdt.o: src/kernel/gdt.c src/kernel/gdt.h | $(BUILD_DIR)
 $(BUILD_DIR)/syscall.o: src/kernel/syscall.c src/kernel/syscall.h | $(BUILD_DIR)
 	@echo ">>> Compiling syscall.c..."
 	$(CC) $(CFLAGS) -c src/kernel/syscall.c -o $(BUILD_DIR)/syscall.o
+
+# vfs.o
+$(BUILD_DIR)/vfs.o: src/kernel/vfs.c src/kernel/vfs.h | $(BUILD_DIR)
+	@echo ">>> Compiling vfs.c..."
+	$(CC) $(CFLAGS) -c src/kernel/vfs.c -o $(BUILD_DIR)/vfs.o
+
+# devfs.o
+$(BUILD_DIR)/devfs.o: src/kernel/devfs.c src/kernel/devfs.h | $(BUILD_DIR)
+	@echo ">>> Compiling devfs.c..."
+	$(CC) $(CFLAGS) -c src/kernel/devfs.c -o $(BUILD_DIR)/devfs.o
 
 # pmm.o
 $(BUILD_DIR)/mm/pmm.o: src/kernel/mm/pmm.c src/kernel/mm/pmm.h | $(BUILD_DIR)/mm
