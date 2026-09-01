@@ -82,6 +82,7 @@ KERNEL_C_SRCS = \
     $(KERNEL_DIR)/drivers/pit.c \
     $(KERNEL_DIR)/fs/vfs.c \
     $(KERNEL_DIR)/fs/devfs.c \
+    $(KERNEL_DIR)/fs/ramdisk.c \
     $(KERNEL_DIR)/proc/task.c \
     $(KERNEL_DIR)/proc/syscall.c \
     $(KERNEL_DIR)/mm/pmm.c \
@@ -102,6 +103,7 @@ KERNEL_C_OBJS = \
     $(BUILD_DIR)/drivers/pit.o \
     $(BUILD_DIR)/fs/vfs.o \
     $(BUILD_DIR)/fs/devfs.o \
+    $(BUILD_DIR)/fs/ramdisk.o \
     $(BUILD_DIR)/proc/task.o \
     $(BUILD_DIR)/proc/syscall.o \
     $(BUILD_DIR)/mm/pmm.o \
@@ -229,6 +231,10 @@ $(BUILD_DIR)/fs/vfs.o: $(KERNEL_DIR)/fs/vfs.c | $(BUILD_DIR)/fs
 
 $(BUILD_DIR)/fs/devfs.o: $(KERNEL_DIR)/fs/devfs.c | $(BUILD_DIR)/fs
 	@echo ">>> Compiling fs/devfs.c..."
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(BUILD_DIR)/fs/ramdisk.o: $(KERNEL_DIR)/fs/ramdisk.c | $(BUILD_DIR)/fs
+	@echo ">>> Compiling fs/ramdisk.c..."
 	$(CC) $(CFLAGS) -c $< -o $@
 
 # C - proc/

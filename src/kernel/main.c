@@ -28,6 +28,7 @@
 #include "syscall.h"
 #include "vfs.h"
 #include "devfs.h"
+#include "ramdisk.h"
 
 /* =============================================================================
  * Demo Tasks für Multitasking
@@ -35,8 +36,7 @@
  */
 
 // Shell als Task
-static void shell_task(void)
-{
+static void shell_task(void) {
     shell_run();
     // Falls Shell beendet wird
     task_exit();
@@ -48,8 +48,7 @@ static void shell_task(void)
  * Diese Funktion wird von entry.asm aufgerufen.
  * Hier initialisieren wir alles und starten die Shell.
  */
-void kernel_main(void)
-{
+void kernel_main(void) {
     /* VGA initialisieren und Bildschirm löschen */
     vga_set_color(VGA_WHITE, VGA_BLACK);
     vga_clear();
@@ -59,8 +58,7 @@ void kernel_main(void)
 
     /* WICHTIG: Alle IRQs maskieren BEVOR wir die IDT laden! */
     /* Sonst kommen Timer-Interrupts rein bevor Handler bereit sind */
-    for (int i = 0; i < 16; i++)
-    {
+    for (int i = 0; i < 16; i++) {
         pic_set_mask(i);
     }
 
@@ -93,6 +91,12 @@ void kernel_main(void)
 
     /* DevFS initialisieren (/dev/stdout, /dev/stdin) */
     devfs_init();
+
+    /* Ramdisk initialisieren */
+    ramdisk_init();
+    ramdisk_create("hello.txt", "Hello from KiOS Ramdisk!\n", 25);
+
+    vfs_mount("/", &ramdisk_root_node);
 
     /* ASCII-Banner ausgeben (nur Standard-ASCII, VGA-kompatibel) */
     vga_println("");
@@ -148,8 +152,7 @@ void kernel_main(void)
 
     /* Idle Loop - der Scheduler wird nun alle 100ms zu anderen Tasks switchen */
     /* Wenn kein Task bereit ist, bleibt der Kernel hier im HLT */
-    for (;;)
-    {
+    for (;;) {
         __asm__ volatile("hlt");
     }
 }

@@ -18,6 +18,7 @@ build/
 
 # Editor and tool folders
 .vscode/
+.idea/
 .claude/
 
 # Project planning and logs

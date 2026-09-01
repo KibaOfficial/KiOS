@@ -26,4 +26,7 @@ void cmd_meminfo(const char* args);
 void cmd_memtest(const char* args);
 void cmd_usertest(const char* args);
 
+void cmd_ls(const char* args);
+void cmd_cat(const char* args);
+
 #endif /* KIOS_COMMANDS_H */

@@ -8,6 +8,10 @@
 #ifndef KIOS_DEVFS_H
 #define KIOS_DEVFS_H
 
+#include "vfs.h"
+
 void devfs_init(void);
+
+extern vnode_t devfs_root_node;
 
 #endif /* KIOS_DEVFS_H */

@@ -101,6 +101,33 @@ static vnode_t devstdin_node = {
 void devfs_init(void) {
     vfs_register("/dev/stdout", &devstdout_node);
     vfs_register("/dev/stdin",  &devstdin_node);
+    vfs_mount("/dev", &devfs_root_node);
     vga_println("[VFS] /dev/stdout registered");
     vga_println("[VFS] /dev/stdin  registered");
 }
+
+// =============================================================================
+// /dev/ root node — für ls /dev
+// =============================================================================
+
+static int devfs_readdir(vnode_t *node, void (*callback)(const char *name)) {
+    (void)node;
+    callback("stdout");
+    callback("stdin");
+    return 0;
+}
+
+static vfs_ops_t devfs_root_ops = {
+    .open    = NULL,
+    .read    = NULL,
+    .write   = NULL,
+    .close   = NULL,
+    .readdir = devfs_readdir,
+};
+
+vnode_t devfs_root_node = {
+    .name = "dev",
+    .type = VFS_TYPE_DIR,
+    .ops  = &devfs_root_ops,
+    .data = NULL,
+};
