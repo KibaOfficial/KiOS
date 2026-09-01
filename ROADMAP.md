@@ -220,21 +220,18 @@ Instead of rewriting our bootloader, we will add Multiboot2 support:
   - ✅ Shell fully functional after returning from Ring 3
   - ✅ **Date:** 2026-09-01 (resumed after 4-month break)
 
-### Planned
-- [ ] **VFS Skeleton (in-memory)**
-  - [ ] Generic VFS node structure
-  - [ ] Basic `open`, `read`, `write`, `close` interface
-  - [ ] `/dev/stdin` → Keyboard
-  - [ ] `/dev/stdout` → VGA
-  - [ ] `/proc/[pid]/` → Process info
+- ✅ **VFS Skeleton (in-memory)** - Unix-style virtual filesystem layer
+  - ✅ Generic `vnode` structure with `vfs_ops` vtable
+  - ✅ `open`, `read`, `write`, `close` interface
+  - ✅ `/dev/stdout` → VGA driver
+  - ✅ `/dev/stdin` → Keyboard driver
+  - ✅ `sys_write` now routes through VFS instead of calling VGA directly
+  - ✅ **Date:** 2026-09-01
 
+### Planned
 - [ ] **Source Restructuring**
-  - [ ] `arch/`
-  - [ ] `drivers/`
-  - [ ] `fs/`
-  - [ ] `proc/`
-  - [ ] `lib/`
-  - [ ] Makefile anpassen
+  - [ ] `arch/`, `drivers/`, `fs/`, `proc/`, `lib/`
+  - [ ] Makefile update
 
 - [ ] **Ramdisk**
   - [ ] Simple in-memory filesystem
@@ -335,7 +332,7 @@ Want to help implement a feature from this roadmap? Here's how:
 
 ---
 
-**Last Updated:** 2026-04-21
+**Last Updated:** 2026-09-01
 **Current Focus:** v0.6.0 🔄 IN PROGRESS - Process Management & Filesystem
 
 **v0.6.0 Accomplishments so far:**
@@ -344,8 +341,10 @@ Want to help implement a feature from this roadmap? Here's how:
 - ✅ task_set_shell() registers shell as return target
 - ✅ initial_regs in TCB ensures clean shell restart
 - ✅ Shell fully functional after Ring 3 program exits
+- ✅ VFS skeleton with /dev/stdout and /dev/stdin
+- ✅ sys_write routes through VFS layer (Ring3 → syscall → VFS → devfs → VGA)
 
 **Next Steps:**
-- VFS skeleton (in-memory, /dev/stdin, /dev/stdout)
+- Source restructuring (arch/, drivers/, fs/, proc/, lib/)
 - Ramdisk
 - FAT12 driver (optional)

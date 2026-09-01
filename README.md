@@ -1,6 +1,6 @@
 # KiOS - A Simple 64-bit Operating System
 
-![Version](https://img.shields.io/badge/version-0.5.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.6.0--dev-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![Architecture](https://img.shields.io/badge/arch-x86__64-orange.svg)
 
@@ -47,6 +47,14 @@ KiOS is a minimalist 64-bit operating system written in C and Assembly.
 - ✅ **System Calls** - sys_write, sys_exit, sys_read (placeholder), sys_yield (placeholder)
 - ✅ **User Page Mapping** - PAGE_USER propagation through page table hierarchy
 - ✅ **TSS RSP0** - Kernel stack for privilege level switches
+
+### Process Management & VFS (v0.6.0) 🔄
+- ✅ **sys_exit Process Switch** - Shell correctly returns after program exits
+- ✅ **task_exit_current()** - noreturn with immediate iretq context switch
+- ✅ **task_restore()** - ASM helper for direct task switching
+- ✅ **VFS Skeleton** - Unix-style virtual filesystem layer
+- ✅ **/dev/stdout** - sys_write routes through VFS to VGA driver
+- ✅ **/dev/stdin** - Keyboard accessible via VFS
 
 ## System Requirements
 
@@ -303,7 +311,6 @@ Displays detailed statistics for:
 ## Known Limitations
 
 - Heap allocator is simple bump allocator (no free-list, kfree is no-op)
-- No filesystem support
 - No network stack
 - VGA Text Mode limited to 80x25 resolution
 - User mode programs are bytecode only (no ELF loader yet)

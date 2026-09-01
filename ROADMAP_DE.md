@@ -143,20 +143,17 @@ Dieses Dokument beschreibt die geplanten Features und Entwicklungs-Meilensteine 
   - ✅ Shell vollständig funktional nach Rückkehr aus Ring 3
   - ✅ **Datum:** 2026-09-01 (nach 4-monatiger Pause fortgesetzt)
 
-### Geplant
-- [ ] **VFS Skeleton (In-Memory)**
-  - [ ] Generische VFS-Node-Struktur
-  - [ ] Grundlegendes `open`, `read`, `write`, `close` Interface
-  - [ ] `/dev/stdin` → Keyboard
-  - [ ] `/dev/stdout` → VGA
-  - [ ] `/proc/[pid]/` → Prozessinformationen
+- ✅ **VFS Skeleton (In-Memory)** - Unix-artiger virtueller Dateisystem-Layer
+  - ✅ Generische `vnode` Struktur mit `vfs_ops` vtable
+  - ✅ `open`, `read`, `write`, `close` Interface
+  - ✅ `/dev/stdout` → VGA-Treiber
+  - ✅ `/dev/stdin` → Tastatur-Treiber
+  - ✅ `sys_write` geht jetzt durch VFS statt VGA direkt aufzurufen
+  - ✅ **Datum:** 2026-09-01
 
+### Geplant
 - [ ] **Quellcode-Restrukturierung**
-  - [ ] `arch/`
-  - [ ] `drivers/`
-  - [ ] `fs/`
-  - [ ] `proc/`
-  - [ ] `lib/`
+  - [ ] `arch/`, `drivers/`, `fs/`, `proc/`, `lib/`
   - [ ] Makefile anpassen
 
 - [ ] **Ramdisk**
@@ -220,7 +217,7 @@ Dieses Dokument beschreibt die geplanten Features und Entwicklungs-Meilensteine 
 
 ---
 
-**Zuletzt aktualisiert:** 2026-04-21
+**Zuletzt aktualisiert:** 2026-09-01
 **Aktueller Fokus:** v0.6.0 🔄 IN PROGRESS - Process Management & Dateisystem
 
 **v0.6.0 Errungenschaften bisher:**
@@ -229,8 +226,10 @@ Dieses Dokument beschreibt die geplanten Features und Entwicklungs-Meilensteine 
 - ✅ task_set_shell() registriert Shell als Rückkehrziel
 - ✅ initial_regs im TCB für sauberen Shell-Neustart
 - ✅ Shell vollständig funktional nach Ring 3 Programm-Ende
+- ✅ VFS Skeleton mit /dev/stdout und /dev/stdin
+- ✅ sys_write geht durch VFS Layer (Ring3 → syscall → VFS → devfs → VGA)
 
 **Nächste Schritte:**
-- VFS Skeleton (in-memory, /dev/stdin, /dev/stdout)
+- Quellcode-Restrukturierung (arch/, drivers/, fs/, proc/, lib/)
 - Ramdisk
 - FAT12 Treiber (optional)

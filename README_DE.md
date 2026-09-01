@@ -49,6 +49,14 @@ KiOS ist ein minimalistisches 64-Bit-Betriebssystem, geschrieben in C und Assemb
 - ✅ **User Page Mapping** - PAGE_USER Propagierung durch Page Table Hierarchie
 - ✅ **TSS RSP0** - Kernel-Stack für Privilege-Level-Wechsel
 
+### Prozessverwaltung & VFS (v0.6.0) 🔄
+- ✅ **sys_exit Process Switch** - Shell kehrt nach Programmende korrekt zurück
+- ✅ **task_exit_current()** - noreturn mit sofortigem iretq Context Switch
+- ✅ **task_restore()** - ASM Helper für direkten Task-Switch
+- ✅ **VFS Skeleton** - Unix-artiger virtueller Dateisystem-Layer
+- ✅ **/dev/stdout** - sys_write geht durch VFS zum VGA-Treiber
+- ✅ **/dev/stdin** - Tastatur über VFS erreichbar
+
 ## Systemanforderungen
 
 **Build-Anforderungen:**
@@ -269,7 +277,6 @@ Zeigt detaillierte Statistiken für:
 ## Bekannte Einschränkungen
 
 - Heap Allocator ist einfacher Bump Allocator (keine Free-List, kfree ist No-Op)
-- Keine Dateisystem-Unterstützung
 - Kein Netzwerk-Stack
 - VGA Text Mode auf 80x25 Auflösung limitiert
 - User Mode Programme nur als Bytecode (noch kein ELF-Loader)
