@@ -218,13 +218,23 @@ Instead of rewriting our bootloader, we will add Multiboot2 support:
   - ✅ `initial_regs` in TCB for clean shell restart after user program exits
   - ✅ `usertest` → "Hello Ring 3!" → `kiba@KiOS>` ✅
   - ✅ Shell fully functional after returning from Ring 3
+  - ✅ **Date:** 2026-09-01 (resumed after 4-month break)
 
 ### Planned
 - [ ] **VFS Skeleton (in-memory)**
-  - [ ] Abstract filesystem interface (`open`, `read`, `write`, `close`)
+  - [ ] Generic VFS node structure
+  - [ ] Basic `open`, `read`, `write`, `close` interface
   - [ ] `/dev/stdin` → Keyboard
   - [ ] `/dev/stdout` → VGA
   - [ ] `/proc/[pid]/` → Process info
+
+- [ ] **Source Restructuring**
+  - [ ] `arch/`
+  - [ ] `drivers/`
+  - [ ] `fs/`
+  - [ ] `proc/`
+  - [ ] `lib/`
+  - [ ] Makefile anpassen
 
 - [ ] **Ramdisk**
   - [ ] Simple in-memory filesystem

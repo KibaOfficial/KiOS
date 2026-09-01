@@ -129,7 +129,7 @@ Dieses Dokument beschreibt die geplanten Features und Entwicklungs-Meilensteine 
 
 ---
 
-## Version 0.6.0 - Process Management & Dateisystem (🔄 In Progress - 2026-04-21)
+## Version 0.6.0 - Prozessverwaltung & Dateisystem (🔄 In Arbeit - 2026-04-21)
 
 **Ziel:** Sauberes Prozess-Lifecycle-Management und grundlegende Dateisystem-Unterstützung
 
@@ -137,34 +137,45 @@ Dieses Dokument beschreibt die geplanten Features und Entwicklungs-Meilensteine 
 - ✅ **sys_exit Process Switch** - Shell kehrt nach Programmende korrekt zurück
   - ✅ `task_exit_current()` noreturn mit sofortigem iretq Context Switch
   - ✅ `task_restore()` ASM Helper für direkten Task-Switch ohne Timer
-  - ✅ `task_set_shell()` Shell als Rückkehrziel registrieren
+  - ✅ `task_set_shell()` zum Registrieren der Shell als Rückkehrziel
   - ✅ `initial_regs` im TCB für sauberen Shell-Neustart
   - ✅ `usertest` → "Hello Ring 3!" → `kiba@KiOS>` ✅
   - ✅ Shell vollständig funktional nach Rückkehr aus Ring 3
+  - ✅ **Datum:** 2026-09-01 (nach 4-monatiger Pause fortgesetzt)
 
 ### Geplant
-- [ ] **VFS Skeleton (in-memory)**
-  - [ ] Abstraktes Dateisystem-Interface (`open`, `read`, `write`, `close`)
+- [ ] **VFS Skeleton (In-Memory)**
+  - [ ] Generische VFS-Node-Struktur
+  - [ ] Grundlegendes `open`, `read`, `write`, `close` Interface
   - [ ] `/dev/stdin` → Keyboard
   - [ ] `/dev/stdout` → VGA
-  - [ ] `/proc/[pid]/` → Prozess-Info
+  - [ ] `/proc/[pid]/` → Prozessinformationen
+
+- [ ] **Quellcode-Restrukturierung**
+  - [ ] `arch/`
+  - [ ] `drivers/`
+  - [ ] `fs/`
+  - [ ] `proc/`
+  - [ ] `lib/`
+  - [ ] Makefile anpassen
 
 - [ ] **Ramdisk**
   - [ ] Einfaches In-Memory-Dateisystem
-  - [ ] Datei-Operationen: create, read, write, delete
+  - [ ] Dateioperationen: create, read, write, delete
 
-- [ ] **FAT12 Treiber (optional)**
-  - [ ] FAT12 Dateisystem von Disk lesen (erstmal read-only)
-  - [ ] Nur Root Directory zunächst
+- [ ] **FAT12-Treiber (optional)**
+  - [ ] FAT12-Dateisystem von Disk lesen (zunächst read-only)
+  - [ ] Zunächst nur Root Directory
 
 - [ ] **Datei-Befehle**
   - [ ] `ls` - Dateien auflisten
-  - [ ] `cat <file>` - Datei-Inhalt anzeigen
+  - [ ] `cat <file>` - Dateiinhalt anzeigen
 
-**Tatsächliche Komplexität:** Sehr Hoch
+**Tatsächliche Komplexität:** Sehr hoch
 **Geschätzte Zeit:** 3-4 Wochen
 
 ---
+
 
 ## Version 0.7.0 - Networking (Zukunft)
 
