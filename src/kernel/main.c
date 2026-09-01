@@ -26,6 +26,8 @@
 #include "mm/vmm.h"
 #include "mm/heap.h"
 #include "syscall.h"
+#include "vfs.h"
+#include "devfs.h"
 
 /* =============================================================================
  * Demo Tasks für Multitasking
@@ -85,6 +87,12 @@ void kernel_main(void)
 
     /* Syscall Interface initialisieren (syscall/sysret MSRs) */
     syscall_init();
+
+    /* VFS initialisieren */
+    vfs_init();
+
+    /* DevFS initialisieren (/dev/stdout, /dev/stdin) */
+    devfs_init();
 
     /* ASCII-Banner ausgeben (nur Standard-ASCII, VGA-kompatibel) */
     vga_println("");

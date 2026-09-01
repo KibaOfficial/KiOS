@@ -6,6 +6,8 @@
 #include "vga.h"
 #include "string.h"
 #include "task.h"
+#include "vfs.h"
+#include "devfs.h"
 
 // MSR Adressen
 #define MSR_GS_BASE         0xC0000101
@@ -114,11 +116,10 @@ uint64_t syscall_handler(uint64_t syscall_num, uint64_t arg1, uint64_t arg2, uin
         case SYS_WRITE:
             // arg1 = fd, arg2 = buffer, arg3 = length
             if (arg1 == 1) {  // stdout
-                const char* buf = (const char*)arg2;
-                for (uint64_t i = 0; i < arg3; i++) {
-                    vga_putchar(buf[i]);
-                }
-                return arg3;
+                return (uint64_t)vfs_write("/dev/stdout", (const void*)arg2, arg3);
+            }
+            if (arg1 == 0) { // stdin - no write
+                return (uint64_t)-1;
             }
             return (uint64_t)-1;
 
