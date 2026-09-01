@@ -19,13 +19,21 @@
 // Forward declaration
 typedef struct vnode vnode_t;
 
+// Directory Entry — wird von readdir zurückgegeben
+typedef struct {
+  char     name[VFS_NAME_MAX];
+  uint8_t  type;
+  uint64_t size;
+  uint32_t ino;
+} vfs_dirent_t;
+
 // operations die jedes vfs backend implementieren muss
 typedef struct vfs_ops {
-  int (*open)   (vnode_t *node);
-  int (*read)   (vnode_t *node, void *buf, uint64_t len);
-  int (*write)  (vnode_t *node, const void *buf, uint64_t len);
-  int (*close)  (vnode_t *node);
-  int (*readdir)(vnode_t *node, void (*callback)(const char *name));
+  int           (*open)   (vnode_t *node);
+  int           (*read)   (vnode_t *node, void *buf, uint64_t len);
+  int           (*write)  (vnode_t *node, const void *buf, uint64_t len);
+  int           (*close)  (vnode_t *node);
+  vfs_dirent_t* (*readdir)(vnode_t *node, uint32_t index);
 } vfs_ops_t;
 
 // node types
@@ -71,7 +79,7 @@ int vfs_mount(const char *path, vnode_t *node);
 void vfs_list_mounts(void (*callback)(const char *path));
 
 // Verzeichnis auflisten via VFS
-int vfs_readdir(const char *path, void (*callback)(const char *name));
+vfs_dirent_t* vfs_readdir(const char *path, uint32_t index);
 
 void vfs_list_submounts(const char *parent, void (*callback)(const char *path));
 

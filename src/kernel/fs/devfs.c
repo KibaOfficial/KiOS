@@ -110,11 +110,20 @@ void devfs_init(void) {
 // /dev/ root node — für ls /dev
 // =============================================================================
 
-static int devfs_readdir(vnode_t *node, void (*callback)(const char *name)) {
+static vfs_dirent_t devfs_dirent_buf;
+
+static vfs_dirent_t* devfs_readdir(vnode_t *node, uint32_t index) {
     (void)node;
-    callback("stdout");
-    callback("stdin");
-    return 0;
+    static const char *entries[] = { "stdout", "stdin" };
+    static const uint8_t types[] = { VFS_TYPE_DEVICE, VFS_TYPE_DEVICE };
+
+    if (index >= 2) return NULL;
+
+    strncpy(devfs_dirent_buf.name, entries[index], VFS_NAME_MAX);
+    devfs_dirent_buf.type = types[index];
+    devfs_dirent_buf.size = 0;
+    devfs_dirent_buf.ino  = index;
+    return &devfs_dirent_buf;
 }
 
 static vfs_ops_t devfs_root_ops = {

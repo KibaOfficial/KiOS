@@ -93,23 +93,23 @@ void vfs_list_mounts(void (*callback)(const char *path)) {
     }
 }
 
-int vfs_readdir(const char *path, void (*callback)(const char *name)) {
-    // erst in mount tabelle suchen
+vfs_dirent_t* vfs_readdir(const char *path, uint32_t index) {
+    // Erst in Mount-Tabelle suchen
     for (int i = 0; i < vfs_mount_count; i++) {
         if (strncmp(vfs_mounts[i].path, path, VFS_NAME_MAX) == 0) {
             vnode_t *node = vfs_mounts[i].node;
             if (node && node->ops && node->ops->readdir) {
-                return node->ops->readdir(node, callback);
+                return node->ops->readdir(node, index);
             }
-            return -1;
+            return NULL;
         }
     }
-    // dann in node tabelle suchen
+    // Dann in Node-Tabelle suchen
     vnode_t *node = vfs_find(path);
     if (node && node->ops && node->ops->readdir) {
-        return node->ops->readdir(node, callback);
+        return node->ops->readdir(node, index);
     }
-    return -1;
+    return NULL;
 }
 
 void vfs_list_submounts(const char *parent, void (*callback)(const char *path)) {

@@ -13,7 +13,16 @@ void cmd_cat(const char *args) {
         return;
     }
 
-    // max 1KB Buffer für Ausgabe
+    // Erst checken ob es ein Directory/Mount ist
+    vfs_dirent_t *entry = vfs_readdir(args, 0);
+    if (entry != NULL) {
+        vga_print("cat: ");
+        vga_print(args);
+        vga_println(": Is a directory");
+        return;
+    }
+
+    // Normal lesen
     char buf[1024];
     int bytes = ramdisk_read(args, buf, sizeof(buf) - 1);
     if (bytes < 0) {

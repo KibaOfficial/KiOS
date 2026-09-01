@@ -138,10 +138,25 @@ static int ramdisk_vfs_read(vnode_t *node, void *buf, uint64_t len) {
     return ramdisk_read((const char*)node->data, buf, len);
 }
 
-static int ramdisk_vfs_readdir(vnode_t *node, void (*callback)(const char *name)) {
+static vfs_dirent_t ramdisk_dirent_buf;
+
+static vfs_dirent_t* ramdisk_vfs_readdir(vnode_t *node, uint32_t index) {
     (void)node;
-    ramdisk_list(callback);
-    return 0;
+    uint32_t count = 0;
+    for (int i = 0; i < RAMDISK_MAX_FILES; i++) {
+        if (ramdisk[i].used) {
+            if (count == index) {
+                // Eintrag gefunden — in Buffer kopieren
+                strncpy(ramdisk_dirent_buf.name, ramdisk[i].name, VFS_NAME_MAX);
+                ramdisk_dirent_buf.type = VFS_TYPE_FILE;
+                ramdisk_dirent_buf.size = ramdisk[i].size;
+                ramdisk_dirent_buf.ino  = (uint32_t)i;
+                return &ramdisk_dirent_buf;
+            }
+            count++;
+        }
+    }
+    return NULL;  // kein Eintrag mehr → ls stoppt
 }
 
 static int ramdisk_vfs_write(vnode_t *node, const void *buf, uint64_t len) {
@@ -154,10 +169,10 @@ static int ramdisk_vfs_close(vnode_t *node) {
 }
 
 static vfs_ops_t ramdisk_ops = {
-    .open  = ramdisk_vfs_open,
-    .read  = ramdisk_vfs_read,
-    .write = ramdisk_vfs_write,
-    .close = ramdisk_vfs_close,
+    .open    = ramdisk_vfs_open,
+    .read    = ramdisk_vfs_read,
+    .write   = ramdisk_vfs_write,
+    .close   = ramdisk_vfs_close,
     .readdir = ramdisk_vfs_readdir,
 };
 
